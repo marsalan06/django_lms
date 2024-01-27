@@ -1,20 +1,23 @@
-from django.http.response import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from django.views.generic import CreateView, ListView
-from django.db.models import Q
-from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.db.models import Q
+from django.http.response import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.decorators import method_decorator
+from django.views.generic import CreateView, ListView
 from django_filters.views import FilterView
-from core.models import Session, Semester
+
+from core.models import Semester, Session
 from course.models import Course
 from result.models import TakenCourse
+
 from .decorators import admin_required
-from .forms import StaffAddForm, StudentAddForm, ProfileUpdateForm, ParentAddForm
-from .models import User, Student, Parent
 from .filters import LecturerFilter, StudentFilter
+from .forms import (ParentAddForm, ProfileUpdateForm, StaffAddForm,
+                    StudentAddForm)
+from .models import Parent, Student, User
 
 
 def validate_username(request):
@@ -28,13 +31,14 @@ def register(request):
         form = StudentAddForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Account created successfuly.")
+            messages.success(request, "Account created successfully.")
+            return redirect('login')  # Redirect after POST
         else:
-            messages.error(
-                request, f"Somthing is not correct, please fill all fields correctly."
-            )
+            for error in form.errors:
+                messages.error(request, form.errors[error])
     else:
-        form = StudentAddForm(request.POST)
+        form = StudentAddForm()  # Empty form for GET request
+
     return render(request, "registration/register.html", {"form": form})
 
 
