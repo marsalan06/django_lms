@@ -1,14 +1,13 @@
-from django.db import models
-from django.urls import reverse
-from django.contrib.auth.models import AbstractUser, UserManager
 from django.conf import settings
-
+from django.contrib.auth.models import AbstractUser, UserManager
+from django.db import models
 from django.db.models import Q
+from django.urls import reverse
 from PIL import Image
 
 from course.models import Program
-from .validators import ASCIIUsernameValidator
 
+from .validators import ASCIIUsernameValidator
 
 # LEVEL_COURSE = "Level course"
 BACHLOAR_DEGREE = "Bachloar"
@@ -159,7 +158,8 @@ class Student(models.Model):
         ordering = ("-student__date_joined",)
 
     def __str__(self):
-        return self.student.get_full_name
+        # return self.student.get_full_name
+        return self.student.username
 
     def get_absolute_url(self):
         return reverse("profile_single", kwargs={"id": self.id})

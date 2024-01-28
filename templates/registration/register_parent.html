@@ -1,0 +1,81 @@
+{% extends 'registration/registration_base.html' %}
+{% block title %} Parent Register | Learning Management System {% endblock title %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="blue-gradient text-light p-3 mb-5">
+        <h1 class="lead my-0">
+            <i class="fas fa-lock mr-2"></i>Register as a Parent
+        </h1>
+    </div>
+
+    {% if form.errors %}
+    <div class="error">
+        <p>There were some problems with your input:</p>
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form action="" method="POST" id="parent-registration-form">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-lg-6">
+                <h2 class="lead p-2 bg-light">Account Information</h2>
+                <div class="form-group">
+                    {{ form.username.label_tag }} {{ form.username }}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label_tag }} {{ form.email }}
+                </div>
+                <div class="form-group">
+                    {{ form.password1.label_tag }} {{ form.password1 }}
+                </div>
+                <div class="form-group">
+                    {{ form.password2.label_tag }} {{ form.password2 }}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h2 class="lead p-2 bg-light">Personal Information</h2>
+                <div class="form-group">
+                    {{ form.first_name.label_tag }} {{ form.first_name }}
+                </div>
+                <div class="form-group">
+                    {{ form.last_name.label_tag }} {{ form.last_name }}
+                </div>
+                <div class="form-group">
+                    {{ form.address.label_tag }} {{ form.address }}
+                </div>
+                <div class="form-group">
+                    {{ form.phone.label_tag }} {{ form.phone }}
+                </div>
+                <div class="form-group">
+                    {{ form.student.label_tag }} {{ form.student }}
+                </div>
+                <div class="form-group">
+                    {{ form.relation_ship.label_tag }} {{ form.relation_ship }}
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+    <br>
+    <span>Already Registered? </span><a href="{% url 'login' %}" class="link">Login</a>
+</div>
+{% endblock content %}
+
+{% block js %}
+<script>
+    // Your JavaScript here, if any
+</script>
+{% endblock %}

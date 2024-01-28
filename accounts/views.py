@@ -41,6 +41,21 @@ def register(request):
 
     return render(request, "registration/register.html", {"form": form})
 
+def register_parent(request):
+    if request.method == "POST":
+        form = ParentAddForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Parent account created successfully.")
+            return redirect('login')  # Redirect after POST
+        else:
+            for error in form.errors:
+                messages.error(request, form.errors[error])
+    else:
+        form = ParentAddForm()  # Empty form for GET request
+
+    return render(request, "registration/register_parent.html", {"form": form})
+
 
 @login_required
 def profile(request):

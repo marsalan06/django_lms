@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import include, path
 
 # from django.contrib.auth.views import (
 #     PasswordResetView,
@@ -8,24 +8,11 @@ from django.urls import path, include
 #     LoginView,
 #     LogoutView,
 # )
-from .views import (
-    profile,
-    profile_single,
-    admin_panel,
-    profile_update,
-    change_password,
-    LecturerFilterView,
-    StudentListView,
-    staff_add_view,
-    edit_staff,
-    delete_staff,
-    student_add_view,
-    edit_student,
-    delete_student,
-    ParentAdd,
-    validate_username,
-    register,
-)
+from .views import (LecturerFilterView, ParentAdd, StudentListView,
+                    admin_panel, change_password, delete_staff, delete_student,
+                    edit_staff, edit_student, profile, profile_single,
+                    profile_update, register, register_parent, staff_add_view,
+                    student_add_view, validate_username)
 
 # from .forms import EmailValidationOnForgotPassword
 
@@ -48,6 +35,8 @@ urlpatterns = [
     path("parents/add/", ParentAdd.as_view(), name="add_parent"),
     path("ajax/validate-username/", validate_username, name="validate_username"),
     path("register/", register, name="register"),
+    path("register-parent/", register_parent, name="register-parent"),
+
     # path('add-student/', StudentAddView.as_view(), name='add_student'),
     # path('programs/course/delete/<int:pk>/', course_delete, name='delete_course'),
     # Setting urls
