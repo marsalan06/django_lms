@@ -190,7 +190,8 @@ class User(AbstractUser):
             role = "Lecturer"
         elif self.is_parent:
             role = "Parent"
-
+        elif self.is_dep_head:
+            role = "Dept Head"
         return role
 
     @property

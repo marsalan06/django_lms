@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Student, Parent, Organization
+from .models import User, Student, Parent, Organization, DepartmentHead
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -44,3 +44,4 @@ admin.site.register(Organization, OrganizationAdmin)
 admin.site.register(User, UserAdmin)
 admin.site.register(Student)
 admin.site.register(Parent)
+admin.site.register(DepartmentHead)

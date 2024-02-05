@@ -44,7 +44,11 @@ class ProgramManager(models.Manager):
     def search(self, query=None):
         queryset = self.get_queryset()
         if query is not None:
-            or_lookup = Q(title__icontains=query) | Q(summary__icontains=query)
+            or_lookup = (
+                Q(title__icontains=query)
+                | Q(summary__icontains=query)
+                | Q(organization__icontains=query)
+            )
             queryset = queryset.filter(
                 or_lookup
             ).distinct()  # distinct() is often necessary with Q lookups
@@ -54,6 +58,13 @@ class ProgramManager(models.Manager):
 class Program(models.Model):
     title = models.CharField(max_length=150, unique=True)
     summary = models.TextField(null=True, blank=True)
+    organization = models.ForeignKey(
+        "accounts.Organization",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="Programs",
+    )
 
     objects = ProgramManager()
 
