@@ -5,6 +5,7 @@ from .models import Program, CourseAllocation, Course
 
 class ProgramFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr="icontains", label="")
+    organization = django_filters.CharFilter(method="org_filter")
 
     class Meta:
         model = Program
@@ -17,6 +18,13 @@ class ProgramFilter(django_filters.FilterSet):
         self.filters["title"].field.widget.attrs.update(
             {"class": "au-input", "placeholder": "Program name"}
         )
+
+    @property
+    def qs(self):
+        parent = super().qs
+        if self.request and not self.request.user.is_staff:
+            return parent.filter(organization=self.request.user.organization)
+        return parent
 
 
 class CourseAllocationFilter(django_filters.FilterSet):
