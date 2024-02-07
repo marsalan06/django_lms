@@ -54,7 +54,60 @@ If you would like to contribute, simply begin by implementing one from the list 
 ```bash
 git clone https://github.com/adilmohak/django-lms.git
 ```
+- For docker based setup , place this docker-compose.yml outside the root folder
+```
+version: "3"
 
+services:
+  # Django school service
+  # school:
+  #   build:
+  #     context: ./school        # Dockerfile location
+  #   ports:
+  #     - "8000:8000"            # Port mapping: host_port:container_port
+  #   volumes:
+  #     - ./school:/app          # Mounting project directory to container
+  #   depends_on:
+  #     - mysql_db               # Dependency on MySQL database service
+  #   env_file:
+  #     - .env                    # Load environment variables from .env file
+
+  # Django lms service
+  lms:
+    container_name: lms
+    build:
+      context: ./django_lms # Dockerfile location
+    ports:
+      - "8001:8001" # Port mapping: host_port:container_port
+    volumes:
+      - ./django_lms:/app # Mounting project directory to container
+    depends_on:
+      - postgres_db # Dependency on PostgreSQL database service
+    env_file:
+      - ./django_lms/.env # Load environment variables from .env file
+
+  # # MySQL database service
+  # mysql_db:
+  #   image: mysql:latest
+  #   env_file:
+  #     - .env                    # Load environment variables from .env file
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql   # Mounting named volume for MySQL data persistence
+
+  # PostgreSQL database service
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:latest
+    env_file:
+      - ./django_lms/.env # Load environment variables from .env file
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Mounting named volume for PostgreSQL data persistence
+
+# Named volumes for data persistence
+volumes:
+  # mysql_data:
+  postgres_data:
+```
 - Create and activate a python virtual environment
 
 ```bash
