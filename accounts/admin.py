@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Student, Parent
+from .models import User, Student, Parent, Organization, DepartmentHead
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -7,6 +7,7 @@ class UserAdmin(admin.ModelAdmin):
         "get_full_name",
         "username",
         "email",
+        "organization",
         "is_active",
         "is_student",
         "is_lecturer",
@@ -17,6 +18,7 @@ class UserAdmin(admin.ModelAdmin):
         "username",
         "first_name",
         "last_name",
+        "organization",
         "email",
         "is_active",
         "is_lecturer",
@@ -30,6 +32,16 @@ class UserAdmin(admin.ModelAdmin):
         verbose_name_plural = "Users"
 
 
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = ("name", "type_of_org", "establishment_year", "status")
+    list_filter = ("type_of_org", "status")
+    search_fields = ("name", "type_of_org", "region")
+    ordering = ("name", "establishment_year")
+
+
+admin.site.register(Organization, OrganizationAdmin)
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Student)
 admin.site.register(Parent)
+admin.site.register(DepartmentHead)

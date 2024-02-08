@@ -5,6 +5,12 @@
 		background-size: cover;
 		background-position: top center;
 	}
+	@media (min-width: 768px) {
+    .tablet-break::before {
+        content: "\A"; /* Use "\A" to insert a line break */
+        white-space: pre;
+    }
+}
 </style>
 
 <div id="side-nav">
@@ -16,13 +22,19 @@
 				</div>
 			</div>
 			<a href="/">
+				{% if request.user.get_org_logo %}
+    			<img src="{{ request.user.organization.logo.url }}" alt="{{ request.user.get_org_logo }} Logo">
+				{% else %}
 				<img src="{% static 'img/dj-lms.png' %}" width="110px" alt="Logo Django LMS">
+				{% endif %}
 			</a>
 			<p class="text-orange">
 				<mark>
 					<i class="far fa-hand-point-right"></i>
 					{{ request.user.get_user_role }}
 				</mark>
+				<span class="tablet-break"></span>
+			    {{ request.user.get_user_org }}
 			</p>
 		</div>
 		{% url 'home' as hom %} {% url 'dashboard' as dash %} {% url 'profile' as prof %}
