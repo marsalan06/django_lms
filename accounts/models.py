@@ -53,12 +53,25 @@ class CustomUserManager(UserManager):
             ).distinct()  # distinct() is often necessary with Q lookups
         return queryset
 
+    def get_student_count(self):
+        return self.model.objects.filter(is_student=True).count()
+
+    def get_lecturer_count(self):
+        return self.model.objects.filter(is_lecturer=True).count()
+
+    def get_superuser_count(self):
+        return self.model.objects.filter(is_superuser=True).count()
+
+
+GENDERS = (("M", "Male"), ("F", "Female"))
+
 
 class User(AbstractUser):
     is_student = models.BooleanField(default=False)
     is_lecturer = models.BooleanField(default=False)
     is_parent = models.BooleanField(default=False)
     is_dep_head = models.BooleanField(default=False)
+    gender = models.CharField(max_length=1, choices=GENDERS, blank=True, null=True)
     phone = models.CharField(max_length=60, blank=True, null=True)
     address = models.CharField(max_length=60, blank=True, null=True)
     picture = models.ImageField(
@@ -79,18 +92,6 @@ class User(AbstractUser):
         if self.first_name and self.last_name:
             full_name = self.first_name + " " + self.last_name
         return full_name
-
-    @classmethod
-    def get_student_count(cls):
-        return cls.objects.filter(is_student=True).count()
-
-    @classmethod
-    def get_lecturer_count(cls):
-        return cls.objects.filter(is_lecturer=True).count()
-
-    @classmethod
-    def get_superuser_count(cls):
-        return cls.objects.filter(is_superuser=True).count()
 
     def __str__(self):
         return "{} ({})".format(self.username, self.get_full_name)
@@ -160,6 +161,13 @@ class Student(models.Model):
     def __str__(self):
         # return self.student.get_full_name
         return self.student.username
+
+    @classmethod
+    def get_gender_count(cls):
+        males_count = Student.objects.filter(student__gender="M").count()
+        females_count = Student.objects.filter(student__gender="F").count()
+
+        return {"M": males_count, "F": females_count}
 
     def get_absolute_url(self):
         return reverse("profile_single", kwargs={"id": self.id})

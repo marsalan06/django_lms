@@ -123,7 +123,7 @@ ASGI_APPLICATION = "config.asgi.application"
 # so consider using postgresql instead
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "ENGINE": config("DB_ENGINE", default="django.db.backends.postgresql_psycopg2"),
         "NAME": config("DB_NAME"),
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASSWORD"),
@@ -192,12 +192,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 # -----------------------------------
 # E-mail configuration
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"  # Gmail as the email host, but you can change it
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
 EMAIL_PORT = config("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("USER_EMAIL")
-EMAIL_HOST_PASSWORD = config("USER_PASSWORD")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_FROM_ADDRESS = config("EMAIL_FROM_ADDRESS")
 
 # crispy config
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -247,3 +250,6 @@ LOGGING = {
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+STUDENT_ID_PREFIX = config("STUDENT_ID_PREFIX", "ugr")
+LECTURER_ID_PREFIX = config("LECTURER_ID_PREFIX", "lec")
