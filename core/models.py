@@ -1,8 +1,8 @@
-from django.db import models
-from django.urls import reverse
-from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import FileExtensionValidator
+from django.db import models
 from django.db.models import Q
+from django.urls import reverse
 
 NEWS = "News"
 EVENTS = "Event"
@@ -58,6 +58,13 @@ class NewsAndEvents(models.Model):
     posted_as = models.CharField(choices=POST, max_length=10)
     updated_date = models.DateTimeField(auto_now=True, auto_now_add=False, null=True)
     upload_time = models.DateTimeField(auto_now=False, auto_now_add=True, null=True)
+    organization = models.ForeignKey(
+        "accounts.Organization",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="organization_news_events",
+    )
 
     objects = NewsAndEventsManager()
 

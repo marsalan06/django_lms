@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
+from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, lecturer_required
 from accounts.models import User
-from .forms import SessionForm, SemesterForm, NewsAndEventsForm
+
+from .forms import NewsAndEventsForm, SemesterForm, SessionForm
 from .models import *
 
 
@@ -14,7 +15,7 @@ from .models import *
 # ########################################################
 @login_required
 def home_view(request):
-    items = NewsAndEvents.objects.all().order_by("-updated_date")
+    items = NewsAndEvents.objects.filter(organization=request.user.organization).order_by("-updated_date")
     context = {
         "title": "News & Events",
         "items": items,
@@ -25,7 +26,7 @@ def home_view(request):
 @login_required
 def post_add(request):
     if request.method == "POST":
-        form = NewsAndEventsForm(request.POST)
+        form = NewsAndEventsForm(request.POST, user=request.user)
         title = request.POST.get("title")
         if form.is_valid():
             form.save()
@@ -35,7 +36,8 @@ def post_add(request):
         else:
             messages.error(request, "Please correct the error(s) below.")
     else:
-        form = NewsAndEventsForm()
+        form = NewsAndEventsForm(user=request.user)
+
     return render(
         request,
         "core/post_add.html",
