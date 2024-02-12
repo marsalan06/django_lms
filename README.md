@@ -60,19 +60,20 @@ version: "3"
 
 services:
   # Django school service
-  # school:
-  #   build:
-  #     context: ./school        # Dockerfile location
-  #   ports:
-  #     - "8000:8000"            # Port mapping: host_port:container_port
-  #   volumes:
-  #     - ./school:/app          # Mounting project directory to container
-  #   depends_on:
-  #     - mysql_db               # Dependency on MySQL database service
-  #   env_file:
-  #     - .env                    # Load environment variables from .env file
+  school:
+    container_name: school
+    build:
+      context: ./school_db        # Dockerfile location
+    ports:
+      - "8000:8000"            # Port mapping: host_port:container_port
+    volumes:
+      - ./school_db:/app          # Mounting project directory to container
+    depends_on:
+      - postgres_db_school               # Dependency on PostgreSQL database service
+    env_file:
+      - ./school_db/.env                    # Load environment variables from .env file
 
-  # Django lms service
+  # Django LMS service
   lms:
     container_name: lms
     build:
@@ -86,13 +87,16 @@ services:
     env_file:
       - ./django_lms/.env # Load environment variables from .env file
 
-  # # MySQL database service
-  # mysql_db:
-  #   image: mysql:latest
-  #   env_file:
-  #     - .env                    # Load environment variables from .env file
-  #   volumes:
-  #     - mysql_data:/var/lib/mysql   # Mounting named volume for MySQL data persistence
+  # PostgreSQL database service for school
+  postgres_db_school:
+    container_name: postgres_db_school
+    image: postgres:latest
+    env_file:
+      - ./school_db/.env # Load environment variables from .env file
+    volumes:
+      - postgres_data_school:/var/lib/postgresql/data # Mounting named volume for PostgreSQL data persistence
+    ports:
+      - "5433:5432" # Port mapping for external access (host_port:container_port)
 
   # PostgreSQL database service
   postgres_db:
@@ -102,11 +106,14 @@ services:
       - ./django_lms/.env # Load environment variables from .env file
     volumes:
       - postgres_data:/var/lib/postgresql/data # Mounting named volume for PostgreSQL data persistence
+    ports:
+      - "5434:5432" # Default PostgreSQL port mapped for external access
 
 # Named volumes for data persistence
 volumes:
-  # mysql_data:
+  postgres_data_school:
   postgres_data:
+
 ```
 - .env file in root of lms folder
 ```
