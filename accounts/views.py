@@ -22,7 +22,7 @@ from .forms import (
     StudentAddForm,
     OrganizationAddForm,
 )
-from .models import Parent, Student, User
+from .models import Parent, Student, User, Organization
 
 
 def validate_username(request):
@@ -357,6 +357,49 @@ def organization_add_view(request):
         "accounts/add_organization.html",  # Adjust the path to your template
         {"title": "Add Organization", "form": form},
     )
+
+
+@login_required
+@admin_required
+def edit_organization(request, pk):
+    instance = get_object_or_404(Organization, pk=pk)
+    print("=======instancesss-----", instance.__dict__)
+    if request.method == "POST":
+        form = OrganizationAddForm(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            organization = form.save()
+
+            messages.success(
+                request, f"Organization '{organization.name}' has been updated."
+            )
+            return redirect("organization_list")  # Adjust the redirect URL as needed
+        else:
+            messages.error(request, "Please correct the error below.")
+    else:
+        form = OrganizationAddForm(instance=instance)
+
+    return render(
+        request,
+        "accounts/edit_organization.html",  # Adjust the template path
+        {
+            "title": "Edit Organization",
+            "form": form,
+        },
+    )
+
+
+@login_required
+@admin_required
+def delete_organization(request, pk):
+    organization = get_object_or_404(Organization, pk=pk)
+    organization_name = (
+        organization.name
+    )  # Capture the name before deletion for the success message
+    organization.delete()
+    messages.success(request, f"Organization '{organization_name}' has been deleted.")
+    return redirect(
+        "organization_list"
+    )  # Adjust this to the name of your organization list view's URL name
 
 
 # ########################################################

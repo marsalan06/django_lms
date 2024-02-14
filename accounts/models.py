@@ -145,7 +145,7 @@ class User(AbstractUser):
     email = models.EmailField(blank=True, null=True)
     organization = models.ForeignKey(
         Organization,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="users",

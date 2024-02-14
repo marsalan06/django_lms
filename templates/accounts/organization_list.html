@@ -10,7 +10,6 @@
     </ol>
 </nav>
 
-<!-- add org condtion comes here -->
 {% if request.user.is_superuser %}
 <div class="manage-wrap">
     <a class="btn btn-sm btn-primary" href="{% url 'add_organization' %}"><i class="fas fa-plus"></i> Add Organization</a>
@@ -60,19 +59,21 @@
                 <td>{{ organization.email }} </td>
                 <td>{{ organization.get_type_of_org_display }}</td>
                 <td>{{ organization.address }}</td>
-
-                {% if request.user.is_superuser %}
+                {% if request.user.is_superuser%}
+                {% if request.user.organization.organization_id == organization.organization_id  or request.user.organization == None %}
                 <td>
                     <div class="dropdown">
                         <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa fa-ellipsis-vertical"></i>
                         </button>
                         <ul class="dropdown-menu position-fixed">
-                            <!--organization edit here-->
-                            <!--organization delete here-->
+                            <li><a class="dropdown-item" href="{% url 'organization_edit' organization.pk %}"><i class="fas fa-edit"></i> Update</a></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'organization_delete' organization.pk %}"><i class="fas fa-trash-alt"></i> Delete</a></li>
+
                         </ul>
                     </div>
                 </td>
+                {% endif %}
                 {% endif %}
 
             {% empty %}
@@ -80,7 +81,7 @@
               <td colspan="7">
               <span class="text-danger">No Organizations found.
                 {% if request.user.is_superuser %}
-                <!--a tag of add organization-->
+                <a href="{% url 'add_organization' %}">
                 <i class="primary" style="font-size: 22px;">
                    Add Organization Now.
                 </i>
