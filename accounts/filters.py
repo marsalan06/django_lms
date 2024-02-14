@@ -1,6 +1,6 @@
 from django.db.models import Q
 import django_filters
-from .models import User, Student
+from .models import User, Student, Organization
 
 
 class LecturerFilter(django_filters.FilterSet):
@@ -69,3 +69,30 @@ class StudentFilter(django_filters.FilterSet):
             Q(student__first_name__icontains=value)
             | Q(student__last_name__icontains=value)
         )
+
+
+class OrganizationFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(method="filter_by_name", label="Organization Name")
+    email = django_filters.CharFilter(method="filter_by_email", label="Email")
+
+    class Meta:
+        model = Organization
+        fields = [
+            "name",
+            "email",
+        ]  # Now specifying fields for automatic filter generation
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.filters["name"].field.widget.attrs.update(
+            {"class": "au-input", "placeholder": "Organization Name"}
+        )
+        self.filters["email"].field.widget.attrs.update(
+            {"class": "au-input", "placeholder": "Email Address"}
+        )
+
+    def filter_by_name(self, queryset, name, value):
+        return queryset.filter(Q(name__icontains=value))
+
+    def filter_by_email(self, queryset, name, value):
+        return queryset.filter(Q(email__icontains=value))

@@ -1,12 +1,25 @@
 from django import forms
 from django.db import transaction
+from django.utils.timezone import now
+
 from django.contrib.auth.forms import (
     UserCreationForm,
     UserChangeForm,
 )
+from django.core.validators import MinValueValidator, MaxValueValidator
+
 from django.contrib.auth.forms import PasswordResetForm
 from course.models import Program
-from .models import User, Student, Parent, RELATION_SHIP, LEVEL
+from .models import (
+    User,
+    Student,
+    Parent,
+    Organization,
+    RELATION_SHIP,
+    LEVEL,
+    TYPE_OF_ORG,
+    STATUS_CHOICES,
+)
 
 
 class StaffAddForm(UserCreationForm):
@@ -113,6 +126,90 @@ class StaffAddForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class OrganizationAddForm(forms.ModelForm):
+    name = forms.CharField(
+        max_length=255,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Organization Name"}
+        ),
+        label="Name",
+    )
+    type_of_org = forms.ChoiceField(
+        choices=TYPE_OF_ORG,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Type of Organization",
+    )
+    address = forms.CharField(
+        widget=forms.Textarea(
+            attrs={"class": "form-control", "placeholder": "Address"}
+        ),
+        label="Address",
+        required=False,
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "Email"}
+        ),
+        label="Email",
+    )
+    phone_number = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Phone Number"}
+        ),
+        label="Phone Number",
+        required=False,
+    )
+    website = forms.URLField(
+        widget=forms.URLInput(
+            attrs={"class": "form-control", "placeholder": "Website"}
+        ),
+        label="Website",
+        required=False,
+    )
+    establishment_year = forms.IntegerField(
+        validators=[MinValueValidator(1000), MaxValueValidator(now().year)],
+        widget=forms.NumberInput(
+            attrs={"class": "form-control", "placeholder": "Establishment Year"}
+        ),
+        label="Establishment Year",
+        required=False,
+    )
+    status = forms.ChoiceField(
+        choices=STATUS_CHOICES,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Status",
+    )
+    domain = forms.CharField(
+        max_length=255,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Domain"}
+        ),
+        label="Domain",
+        required=False,
+    )
+    logo = forms.ImageField(
+        widget=forms.FileInput(attrs={"class": "form-control"}),
+        label="Logo",
+        required=False,
+    )
+
+    class Meta:
+        model = Organization
+        fields = [
+            "name",
+            "type_of_org",
+            "address",
+            "email",
+            "phone_number",
+            "website",
+            "establishment_year",
+            "status",
+            "domain",
+            "logo",
+        ]
 
 
 class StudentAddForm(UserCreationForm):

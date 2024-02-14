@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | Learning Management System{% endblock title %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'organization_list' %}">Organizations</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Add</li>
+    </ol>
+</nav>
+
+<h4 class="mb-3 fw-bold"><i class="fas fa-building me-2"></i>Add Organization</h4>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>{{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>{{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<form action="" method="POST" enctype="multipart/form-data">{% csrf_token %}
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="card">
+            <p class="form-title">Organization Info</p>
+            <div class="p-3">
+                <div class="form-group">
+                    <b>{{ form.name.label }}</b>{{ form.name }}
+                    <span class="danger">{{ form.name.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.type_of_org.label }}</b>{{ form.type_of_org }}
+                    <span class="danger">{{ form.type_of_org.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.email.label }}</b>{{ form.email }}
+                    <span class="danger">{{ form.email.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.address.label }}</b>{{ form.address }}
+                    <span class="danger">{{ form.address.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.phone_number.label }}</b>{{ form.phone_number }}
+                    <span class="danger">{{ form.phone_number.errors }}</span>
+                </div>
+            </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+            <p class="form-title">Additional Info</p>
+            <div class="p-3">
+                <div class="form-group">
+                    <b>{{ form.website.label }}</b>{{ form.website }}
+                    <span class="danger">{{ form.website.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.establishment_year.label }}</b>{{ form.establishment_year }}
+                    <span class="danger">{{ form.establishment_year.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.status.label }}</b>{{ form.status }}
+                    <span class="danger">{{ form.status.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.domain.label }}</b>{{ form.domain }}
+                    <span class="danger">{{ form.domain.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.logo.label }}</b>{{ form.logo }}
+                    <span class="danger">{{ form.logo.errors }}</span>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Organization</button>
+</form>
+
+{% endblock content %}

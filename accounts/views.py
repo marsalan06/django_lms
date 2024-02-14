@@ -14,9 +14,14 @@ from course.models import Course
 from result.models import TakenCourse
 
 from .decorators import admin_required
-from .filters import LecturerFilter, StudentFilter
-from .forms import (ParentAddForm, ProfileUpdateForm, StaffAddForm,
-                    StudentAddForm)
+from .filters import LecturerFilter, StudentFilter, OrganizationFilter
+from .forms import (
+    ParentAddForm,
+    ProfileUpdateForm,
+    StaffAddForm,
+    StudentAddForm,
+    OrganizationAddForm,
+)
 from .models import Parent, Student, User
 
 
@@ -32,7 +37,7 @@ def register(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Account created successfully.")
-            return redirect('login')  # Redirect after POST
+            return redirect("login")  # Redirect after POST
         else:
             for error in form.errors:
                 messages.error(request, form.errors[error])
@@ -41,13 +46,14 @@ def register(request):
 
     return render(request, "registration/register.html", {"form": form})
 
+
 def register_parent(request):
     if request.method == "POST":
         form = ParentAddForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Parent account created successfully.")
-            return redirect('login')  # Redirect after POST
+            return redirect("login")  # Redirect after POST
         else:
             for error in form.errors:
                 messages.error(request, form.errors[error])
@@ -280,6 +286,18 @@ def edit_staff(request, pk):
 
 
 @method_decorator([login_required, admin_required], name="dispatch")
+class OrganizationListView(FilterView):
+    filterset_class = OrganizationFilter
+    template_name = "accounts/organization_list.html"  # Adjust the path as needed
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = "Organizations"
+        return context
+
+
+@method_decorator([login_required, admin_required], name="dispatch")
 class LecturerFilterView(FilterView):
     filterset_class = LecturerFilter
     queryset = User.objects.filter(is_lecturer=True)
@@ -311,6 +329,34 @@ def delete_staff(request, pk):
 
 
 # ########################################################
+
+
+##########################################################
+# organization views
+##########################################################
+@login_required
+@admin_required
+def organization_add_view(request):
+    if request.method == "POST":
+        form = OrganizationAddForm(
+            request.POST, request.FILES
+        )  # Include request.FILES for image fields
+        if form.is_valid():
+            organization = form.save()
+            messages.success(
+                request,
+                f"Organization '{organization.name}' has been created successfully.",
+            )
+            return redirect("organization_list")  # Adjust the redirect URL as needed
+        else:
+            messages.error(request, "Correct the error(s) below.")
+    else:
+        form = OrganizationAddForm()
+    return render(
+        request,
+        "accounts/add_organization.html",  # Adjust the path to your template
+        {"title": "Add Organization", "form": form},
+    )
 
 
 # ########################################################
