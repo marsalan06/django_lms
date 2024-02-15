@@ -51,8 +51,8 @@
             <div class="program-description">
                 <p><strong>Last login: </strong>{{ user.last_login|date }}</p>
                 <p><strong>Full Name: </strong>{{ user.get_full_name|title }}</p>
-                <p><strong>Role: </strong>{{ user_type }}
-                </p>
+                <p><strong>Role: </strong>{{ user_type }}</p>
+                <p><strong>Organization: </strong>{{user.organization}}</p>
             </div>
         </div>
     </div>

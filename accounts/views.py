@@ -71,6 +71,8 @@ def profile(request):
         is_current_semester=True, session=current_session
     ).first()
 
+    user_organization = request.user.organization
+
     if request.user.is_lecturer:
         courses = Course.objects.filter(
             allocated_course__lecturer__pk=request.user.id
@@ -83,6 +85,7 @@ def profile(request):
                 "courses": courses,
                 "current_session": current_session,
                 "current_semester": current_semester,
+                "user_organization": user_organization,
             },
         )
     elif request.user.is_student:
@@ -101,6 +104,7 @@ def profile(request):
             "level": level,
             "current_session": current_session,
             "current_semester": current_semester,
+            "user_organization": user_organization,
         }
         return render(request, "accounts/profile.html", context)
     else:
@@ -113,6 +117,7 @@ def profile(request):
                 "staff": staff,
                 "current_session": current_session,
                 "current_semester": current_semester,
+                "user_organization": user_organization,
             },
         )
 
@@ -234,7 +239,7 @@ def change_password(request):
 @admin_required
 def staff_add_view(request):
     if request.method == "POST":
-        form = StaffAddForm(request.POST)
+        form = StaffAddForm(request.POST, user=request.user)
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         if form.is_valid():
@@ -249,7 +254,7 @@ def staff_add_view(request):
             )
             return redirect("lecturer_list")
     else:
-        form = StaffAddForm()
+        form = StaffAddForm(user=request.user)
 
     context = {
         "title": "Lecturer Add",
@@ -264,7 +269,9 @@ def staff_add_view(request):
 def edit_staff(request, pk):
     instance = get_object_or_404(User, is_lecturer=True, pk=pk)
     if request.method == "POST":
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=instance)
+        form = ProfileUpdateForm(
+            request.POST, request.FILES, instance=instance, user=request.user
+        )
         full_name = instance.get_full_name
         if form.is_valid():
             form.save()
@@ -274,7 +281,7 @@ def edit_staff(request, pk):
         else:
             messages.error(request, "Please correct the error below.")
     else:
-        form = ProfileUpdateForm(instance=instance)
+        form = ProfileUpdateForm(instance=instance, user=request.user)
     return render(
         request,
         "accounts/edit_lecturer.html",
@@ -303,6 +310,17 @@ class LecturerFilterView(FilterView):
     queryset = User.objects.filter(is_lecturer=True)
     template_name = "accounts/lecturer_list.html"
     paginate_by = 10  # if pagination is desired
+
+    def get_queryset(self):
+        # Get the base queryset with the is_lecturer condition
+        queryset = User.objects.filter(is_lecturer=True)
+
+        # Filter by the organization of the request.user, if available
+        user_organization = getattr(self.request.user, "organization", None)
+        if user_organization:
+            queryset = queryset.filter(organization=user_organization)
+
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

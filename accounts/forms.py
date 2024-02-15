@@ -111,6 +111,24 @@ class StaffAddForm(UserCreationForm):
         label="Password Confirmation",
     )
 
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.all(), required=False, label="Organization"
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+        # Dynamically filter `organization` field based on request.user
+
+        user_organization = user.organization
+        if user_organization:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                organization_id=user_organization.organization_id
+            )
+        else:
+            # Fallback to default behavior if user is not provided or has no specific organization
+            self.fields["organization"].queryset = Organization.objects.all()
+
     class Meta(UserCreationForm.Meta):
         model = User
 
@@ -123,6 +141,8 @@ class StaffAddForm(UserCreationForm):
         user.phone = self.cleaned_data.get("phone")
         user.address = self.cleaned_data.get("address")
         user.email = self.cleaned_data.get("email")
+        if self.cleaned_data["organization"]:
+            user.organization = self.cleaned_data["organization"]
         if commit:
             user.save()
         return user
@@ -390,10 +410,35 @@ class ProfileUpdateForm(UserChangeForm):
         ),
         label="Address / city",
     )
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.all(), required=False, label="Organization"
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+        # Dynamically filter `organization` field based on request.user
+
+        user_organization = user.organization
+        if user_organization:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                organization_id=user_organization.organization_id
+            )
+        else:
+            # Fallback to default behavior if user is not provided or has no specific organization
+            self.fields["organization"].queryset = Organization.objects.all()
 
     class Meta:
         model = User
-        fields = ["email", "phone", "address", "picture", "first_name", "last_name"]
+        fields = [
+            "email",
+            "phone",
+            "address",
+            "picture",
+            "first_name",
+            "last_name",
+            "organization",
+        ]
 
 
 class EmailValidationOnForgotPassword(PasswordResetForm):

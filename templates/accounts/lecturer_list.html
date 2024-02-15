@@ -43,6 +43,7 @@
                 <th> Full Name </th>
                 <th> Email </th>
                 <th> Mob No. </th>
+                <th> Organization </th>
                 <th> Address/city </th>
                 <th> Last login </th>
                 {% if request.user.is_superuser %}
@@ -58,6 +59,7 @@
                 <td><a href="{% url 'profile_single' lecturer.id %}">{{ lecturer.get_full_name }}</a></td>
                 <td>{{ lecturer.email }}</td>
                 <td>{{ lecturer.phone }}</td>
+                <td>{{ lecturer.organization }}</td>
                 <td>{{ lecturer.address }}</td>
                 <td>{{ lecturer.last_login }}</td>
                 {% if request.user.is_superuser %}

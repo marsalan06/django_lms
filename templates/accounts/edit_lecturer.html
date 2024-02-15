@@ -30,6 +30,7 @@
                     {{ form.last_name|as_crispy_field }}
                     {{ form.phone|as_crispy_field }}
                     {{ form.address|as_crispy_field }}
+                    {{ form.organization |as_crispy_field }}
                 </div>
             </div>
         </div>
@@ -37,6 +38,7 @@
             <div class="card">
                 <p class="form-title">Others</p>
                 <div class="card-body">
+                    <img src="{{ form.instance.picture.url }}" alt="Organization Logo" style="max-width: 100px; max-height: 100px;">
                     {{ form.picture|as_crispy_field }}
                 </div>
             </div>

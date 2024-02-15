@@ -34,6 +34,7 @@
             <div class="card">
                 <p class="form-title">Others</p>
                 <div class="card-body">
+                    <img src="{{ form.instance.picture.url }}" alt="Organization Logo" style="max-width: 100px; max-height: 100px;">
                     {{ form.picture|as_crispy_field }}
                 </div>
             </div>
