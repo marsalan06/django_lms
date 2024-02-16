@@ -30,6 +30,16 @@ class ProgramFilterView(FilterView):
     filterset_class = ProgramFilter
     template_name = "course/program_list.html"
 
+    def get_queryset(self):
+        # Start with all programs or a base filtering of programs if needed
+        queryset = Program.objects.all()  # Start with all programs
+
+        # Filter by the organization of the request.user, if available
+        user_organization = getattr(self.request.user, "organization", None)
+        if user_organization is not None:
+            queryset = queryset.filter(organization=user_organization)
+        return queryset
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = "Programs"
@@ -40,7 +50,7 @@ class ProgramFilterView(FilterView):
 @lecturer_required
 def program_add(request):
     if request.method == "POST":
-        form = ProgramForm(request.POST)
+        form = ProgramForm(request.POST, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(
@@ -50,7 +60,7 @@ def program_add(request):
         else:
             messages.error(request, "Correct the error(S) below.")
     else:
-        form = ProgramForm()
+        form = ProgramForm(user=request.user)
 
     return render(
         request,
@@ -91,7 +101,7 @@ def program_edit(request, pk):
     program = Program.objects.get(pk=pk)
 
     if request.method == "POST":
-        form = ProgramForm(request.POST, instance=program)
+        form = ProgramForm(request.POST, instance=program, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(
@@ -99,7 +109,7 @@ def program_edit(request, pk):
             )
             return redirect("programs")
     else:
-        form = ProgramForm(instance=program)
+        form = ProgramForm(instance=program, user=request.user)
 
     return render(
         request,

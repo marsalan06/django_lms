@@ -1,6 +1,6 @@
 from django import forms
 
-from accounts.models import User
+from accounts.models import User, Organization
 
 from .models import Course, CourseAllocation, Program, Upload, UploadVideo
 
@@ -11,10 +11,20 @@ class ProgramForm(forms.ModelForm):
         fields = "__all__"
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["summary"].widget.attrs.update({"class": "form-control"})
         self.fields["organization"].widget.attrs.update({"class": "form-control"})
+
+        user_organization = user.organization
+        if user_organization:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                organization_id=user_organization.organization_id
+            )
+        else:
+            # Fallback to default behavior if user is not provided or has no specific organization
+            self.fields["organization"].queryset = Organization.objects.all()
 
 
 class CourseAddForm(forms.ModelForm):
