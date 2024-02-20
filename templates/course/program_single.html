@@ -27,6 +27,11 @@
 {% endif %}
 {% endif %}
 
+{% if organization %}
+<h2>Organization</h2>
+<div class="title-1">{{ organization }}</div>
+{% endif %}
+
 {% if messages %}
 {% for message in messages %}
 {% if message.tags == 'error' %}
@@ -58,13 +63,11 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th> Course Slug </th>
                     <th> Course Name </th>
                     <th> Course Code </th>
-                    <th> Cr.Hr </th>
-                    <th> Level </th>
-                    <th> Year </th>
-                    <th> Semester </th>
-                    <th> Current Semester </th>
+                    <th> Course Program </th>
+                    <th> Course Organization </th>
                     {% if request.user.is_superuser %}
                     <th>Action</th>
                     {% endif %}
@@ -74,20 +77,12 @@
                 {% for course in courses %}
                 <tr>
                     <td>{{ forloop.counter }}.</td>
+                    <td> {{ course.slug }} </td>
                     <td><a href="{{ course.get_absolute_url }}">
                             {{ course.title }}</a></td>
                     <td>{{ course.code }}</td>
-                    <td>{{ course.credit }}</td>
-                    <td>{{ course.level }}</td>
-                    <td>{{ course.year }}</td>
-                    <td>{{ course.semester }}</td>
-                    <th>
-                        {% if course.is_current_semester == False %}
-                        <i class="fas fa-times-circle fa-1-5x danger"></i>
-                        {% elif course.is_current_semester == True %}
-                        <i class="fas fa-check-circle fa-1-5x"></i>
-                        {% endif %}
-                    </th>
+                    <td>{{ course.program }}</td>
+                    <td>{{ course.program.organization.name }}</td>
                     {% if request.user.is_superuser %}
                     <td>
                         <div class="dropstart">

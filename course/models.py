@@ -105,14 +105,14 @@ class CourseManager(models.Manager):
 class Course(models.Model):
     slug = models.SlugField(blank=True, unique=True)
     title = models.CharField(max_length=200, null=True)
-    code = models.CharField(max_length=200, unique=True, null=True)
-    credit = models.IntegerField(null=True, default=0)
+    code = models.CharField(max_length=200, null=True)
+    # credit = models.IntegerField(null=True, default=0)
     summary = models.TextField(max_length=200, blank=True, null=True)
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
-    level = models.CharField(max_length=25, choices=LEVEL, null=True)
-    year = models.IntegerField(choices=YEARS, default=0)
-    semester = models.CharField(choices=SEMESTER, max_length=200)
-    is_elective = models.BooleanField(default=False, blank=True, null=True)
+    # level = models.CharField(max_length=25, choices=LEVEL, null=True)
+    # year = models.IntegerField(choices=YEARS, default=0)
+    # semester = models.CharField(choices=SEMESTER, max_length=200)
+    # is_elective = models.BooleanField(default=False, blank=True, null=True)
 
     objects = CourseManager()
 
@@ -135,6 +135,7 @@ class Course(models.Model):
 
 
 def course_pre_save_receiver(sender, instance, *args, **kwargs):
+    print("=====testing-----", instance.__dict__, instance.slug)
     if not instance.slug:
         instance.slug = unique_slug_generator(instance)
 

@@ -75,8 +75,12 @@ def program_add(request):
 @login_required
 def program_detail(request, pk):
     program = Program.objects.get(pk=pk)
-    courses = Course.objects.filter(program_id=pk).order_by("-year")
-    credits = Course.objects.aggregate(Sum("credit"))
+    courses = Course.objects.filter(program_id=pk)
+    if program.organization:
+        organization = program.organization.name
+    else:
+        organization = None
+    # credits = Course.objects.aggregate(Sum("credit"))
 
     paginator = Paginator(courses, 10)
     page = request.GET.get("page")
@@ -90,7 +94,7 @@ def program_detail(request, pk):
             "title": program.title,
             "program": program,
             "courses": courses,
-            "credits": credits,
+            "organization": organization,
         },
     )
 
@@ -163,7 +167,7 @@ def course_single(request, slug):
 def course_add(request, pk):
     users = User.objects.all()
     if request.method == "POST":
-        form = CourseAddForm(request.POST)
+        form = CourseAddForm(request.POST, user=request.user, program_pk=pk)
         course_name = request.POST.get("title")
         course_code = request.POST.get("code")
         if form.is_valid():
@@ -175,7 +179,11 @@ def course_add(request, pk):
         else:
             messages.error(request, "Correct the error(s) below.")
     else:
-        form = CourseAddForm(initial={"program": Program.objects.get(pk=pk)})
+        form = CourseAddForm(
+            initial={"program": Program.objects.get(pk=pk)},
+            user=request.user,
+            program_pk=pk,
+        )
 
     return render(
         request,

@@ -18,7 +18,11 @@ def unique_slug_generator(instance, new_slug=None):
     if new_slug is not None:
         slug = new_slug
     else:
-        slug = slugify(instance.title)
+        # Incorporate the course title into the slug
+        course_code = slugify(instance.code)
+        title = slugify(instance.title)
+        org = slugify(instance.program.organization)
+        slug = f"{course_code}-{title}-{org}"
 
     Klass = instance.__class__
     qs_exists = Klass.objects.filter(slug=slug).exists()
