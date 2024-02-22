@@ -8,8 +8,8 @@
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'programs' %}">Programs</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Program Form</li>
+        <li class="breadcrumb-item"><a href="{% url 'programs' %}">Classes</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Classes Form</li>
     </ol>
 </nav>
 
@@ -30,7 +30,7 @@
 <div class="row">
 <div class="col-md-6 mx-auto">
     <div class="card">
-        <p class="form-title">Program Add Form</p>
+        <p class="form-title">Class Add Form</p>
         <div class="p-3"><br>
             <form action="" method="POST">{% csrf_token %}
                 <!-- {{ form|crispy }} -->

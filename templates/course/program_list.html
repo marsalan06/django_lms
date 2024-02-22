@@ -6,17 +6,17 @@
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Programs</li>
+        <li class="breadcrumb-item active" aria-current="page">Classes</li>
     </ol>
 </nav>
 
 {% if request.user.is_superuser %}
 <div class="manage-wrap">
-    <a class="btn btn-primary" href="{% url 'add_program' %}"><i class="fas fa-plus"></i>Add Program</a>
+    <a class="btn btn-primary" href="{% url 'add_program' %}"><i class="fas fa-plus"></i>Add Class</a>
 </div>
 {% endif %}
 
-<div class="title-1"><i class="fas fa-book-open"></i>Program List</div>
+<div class="title-1"><i class="fas fa-book-open"></i>Class List</div>
 
 {% if messages %}
 {% for message in messages %}
@@ -69,7 +69,7 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Program Name</th>
+                    <th>Class</th>
                     <th>Summary</th>
                     <th>Organization</th>
                     {% if request.user.is_superuser %}
@@ -81,8 +81,7 @@
                 {% for program in filter.qs %}
                 <tr>
                     <td>{{ forloop.counter }}.</td>
-                    <td><a class="a-list" href="{{ program.get_absolute_url }}">
-                            {{ program.title}}</a></td>
+                    <td><a class="a-list" href="{{ program.get_absolute_url }}">{{ program.title}}</a></td>
                     <td>{{ program.summary }} </td>
                     <td>{{ program.organization }}</td>
                     {% if request.user.is_superuser %}
@@ -105,7 +104,7 @@
                             <div class="modal-dialog">
                                 <div class="modal-content">
                                     <p class="p-4">
-                                        Are you sure you want to delete this program?
+                                        Are you sure you want to delete this class?
                                     </p>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary"
@@ -129,11 +128,11 @@
                   <td></td>
                   <td>
                   <span class="text-danger">
-                    No program.
+                    No class.
                     {% if request.user.is_superuser %}
                     <a href="{% url 'add_program' %}">
                     <i class="primary" style="font-size: 22px;">
-                       Add program now.
+                       Add Class now.
                     </i>
                     {% endif %}
                     </a>

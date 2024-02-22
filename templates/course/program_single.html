@@ -7,7 +7,7 @@
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Home</a></li>
-        <li class="breadcrumb-item"><a href="{% url 'programs' %}">Programs</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'programs' %}">Classes</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ program.title }}</li>
     </ol>
 </nav>
@@ -66,7 +66,7 @@
                     <th> Course Slug </th>
                     <th> Course Name </th>
                     <th> Course Code </th>
-                    <th> Course Program </th>
+                    <th> Course Class </th>
                     <th> Course Organization </th>
                     {% if request.user.is_superuser %}
                     <th>Action</th>
