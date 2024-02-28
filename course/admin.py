@@ -5,7 +5,7 @@ from .models import Program, Course, CourseAllocation, Upload
 
 
 class ProgramAdmin(admin.ModelAdmin):
-    list_display = ("title", "organization", "summary_short")
+    list_display = ("title", "section", "organization", "summary_short")
     list_filter = ("organization", "title")
     search_fields = ("title", "organization__name")
 

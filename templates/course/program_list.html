@@ -70,6 +70,7 @@
                 <tr>
                     <th>#</th>
                     <th>Class</th>
+                    <th>Section</th>
                     <th>Summary</th>
                     <th>Organization</th>
                     {% if request.user.is_superuser %}
@@ -82,6 +83,7 @@
                 <tr>
                     <td>{{ forloop.counter }}.</td>
                     <td><a class="a-list" href="{{ program.get_absolute_url }}">{{ program.title}}</a></td>
+                    <td>{{program.section}}</td>
                     <td>{{ program.summary }} </td>
                     <td>{{ program.organization }}</td>
                     {% if request.user.is_superuser %}

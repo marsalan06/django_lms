@@ -56,7 +56,8 @@ class ProgramManager(models.Manager):
 
 
 class Program(models.Model):
-    title = models.CharField(max_length=150, unique=True)
+    title = models.CharField(max_length=150)
+    section = models.CharField(max_length=25)
     summary = models.TextField(null=True, blank=True)
     organization = models.ForeignKey(
         "accounts.Organization",
@@ -68,8 +69,15 @@ class Program(models.Model):
 
     objects = ProgramManager()
 
+    class Meta:
+        unique_together = (
+            "title",
+            "section",
+            "organization",
+        )  # Enforces the unique constraint
+
     def __str__(self):
-        return self.title
+        return f"{self.title}_{self.section}"
 
     def get_absolute_url(self):
         return reverse("program_detail", kwargs={"pk": self.pk})

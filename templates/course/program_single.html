@@ -67,6 +67,7 @@
                     <th> Course Name </th>
                     <th> Course Code </th>
                     <th> Course Class </th>
+                    <th> Class Section </th>
                     <th> Course Organization </th>
                     {% if request.user.is_superuser %}
                     <th>Action</th>
@@ -81,7 +82,8 @@
                     <td><a href="{{ course.get_absolute_url }}">
                             {{ course.title }}</a></td>
                     <td>{{ course.code }}</td>
-                    <td>{{ course.program }}</td>
+                    <td>{{ course.program.title }}</td>
+                    <td>{{ course.program.section }}</td>
                     <td>{{ course.program.organization.name }}</td>
                     {% if request.user.is_superuser %}
                     <td>

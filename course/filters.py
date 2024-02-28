@@ -5,11 +5,14 @@ from .models import Program, CourseAllocation, Course
 
 class ProgramFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr="icontains", label="")
+    section = django_filters.CharFilter(
+        lookup_expr="exact", label=""
+    )  # Added section filter
     organization = django_filters.CharFilter(method="org_filter")
 
     class Meta:
         model = Program
-        fields = ["title"]
+        fields = ["title", "section"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,6 +20,9 @@ class ProgramFilter(django_filters.FilterSet):
         # Change html classes and placeholders
         self.filters["title"].field.widget.attrs.update(
             {"class": "au-input", "placeholder": "Program name"}
+        )
+        self.filters["section"].field.widget.attrs.update(
+            {"class": "au-input", "placeholder": "Section"}
         )
 
     @property

@@ -33,11 +33,15 @@
         <p class="form-title">Class Add Form</p>
         <div class="p-3"><br>
             <form action="" method="POST">{% csrf_token %}
-                <!-- {{ form|crispy }} -->
+                {{ form|crispy }}
                 
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <b>{{ form.title.label }}</b>{{ form.title }}
                     <span class="danger">{{ form.title.errors }}</span>
+                </div>
+                <div class="form-group">
+                    <b>{{ form.section.label }}</b>{{ form.section }}
+                    <span class="danger">{{ form.section.errors }}</span>
                 </div>
                 <div class="form-group">
                     <b>{{ form.summary.label }}</b>{{ form.summary }}
@@ -46,7 +50,7 @@
                 <div class="form-group">
                     <b>{{ form.organization.label }}</b>{{ form.organization }}
                     <span class="danger">{{ form.organization.errors }}</span>
-                </div>
+                </div> -->
 
                 <input class="btn btn-outline-primary" type="submit" value="Save">
             </form>
