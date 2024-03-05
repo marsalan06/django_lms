@@ -201,8 +201,12 @@ def course_add(request, pk):
 @lecturer_required
 def course_edit(request, slug):
     course = get_object_or_404(Course, slug=slug)
+    if course:
+        program_pk = course.program.pk
     if request.method == "POST":
-        form = CourseAddForm(request.POST, instance=course)
+        form = CourseAddForm(
+            request.POST, instance=course, user=request.user, program_pk=program_pk
+        )
         course_name = request.POST.get("title")
         course_code = request.POST.get("code")
         if form.is_valid():
@@ -214,8 +218,7 @@ def course_edit(request, slug):
         else:
             messages.error(request, "Correct the error(s) below.")
     else:
-        form = CourseAddForm(instance=course)
-
+        form = CourseAddForm(instance=course, user=request.user, program_pk=program_pk)
     return render(
         request,
         "course/course_add.html",

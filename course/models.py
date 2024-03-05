@@ -143,7 +143,6 @@ class Course(models.Model):
 
 
 def course_pre_save_receiver(sender, instance, *args, **kwargs):
-    print("=====testing-----", instance.__dict__, instance.slug)
     if not instance.slug:
         instance.slug = unique_slug_generator(instance)
 
@@ -206,7 +205,7 @@ class Upload(models.Model):
     upload_time = models.DateTimeField(auto_now=False, auto_now_add=True, null=True)
 
     def __str__(self):
-        return str(self.file)[6:]
+        return f"{self.title}_{self.course}"
 
     def get_extension_short(self):
         ext = str(self.file).split(".")

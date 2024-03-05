@@ -53,6 +53,10 @@
                 </select>
             </div>
             <div class="form-group">
+                <b>Summary</b><br>{{ form.summary }}
+                <span class="danger">{{ form.summary.errors }}</span>
+            </div>
+            <div class="form-group">
                 <button class="btn btn-primary" type="submit">Upload</button>
                 <a class="btn btn-danger" href="{% url 'course_detail' course.slug %}" style="float: right;">Cancel</a>
             </div>

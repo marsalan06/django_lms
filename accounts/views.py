@@ -381,7 +381,6 @@ def organization_add_view(request):
 @admin_required
 def edit_organization(request, pk):
     instance = get_object_or_404(Organization, pk=pk)
-    print("=======instancesss-----", instance.__dict__)
     if request.method == "POST":
         form = OrganizationAddForm(request.POST, request.FILES, instance=instance)
         if form.is_valid():

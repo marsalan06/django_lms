@@ -37,6 +37,7 @@ class CourseAddForm(forms.ModelForm):
         user = kwargs.pop("user", None)  # Extract the user from kwargs
         program_pk = kwargs.pop("program_pk", None)
 
+        # instance = kwargs.pop("instance", None)
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["code"].widget.attrs.update({"class": "form-control"})
@@ -47,6 +48,10 @@ class CourseAddForm(forms.ModelForm):
         # self.fields["level"].widget.attrs.update({"class": "form-control"})
         # self.fields["year"].widget.attrs.update({"class": "form-control"})
         # self.fields["semester"].widget.attrs.update({"class": "form-control"})
+        # if instance is not None:
+        #     self.fields["program"].queryset = Program.objects.filter(
+        #         pk=instance.program.pk
+        #     )
 
         self.fields["program"].queryset = Program.objects.filter(pk=program_pk)
         # if user and hasattr(user, "organization"):
@@ -127,13 +132,10 @@ class UploadFormFile(forms.ModelForm):
 class UploadFormVideo(forms.ModelForm):
     class Meta:
         model = UploadVideo
-        fields = (
-            "title",
-            "video",
-            "course",
-        )
+        fields = ("title", "video", "course", "summary")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["video"].widget.attrs.update({"class": "form-control"})
+        self.fields["summary"].widget.attrs.update({"class": "form-control"})
