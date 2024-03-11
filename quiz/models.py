@@ -98,7 +98,7 @@ class Quiz(models.Model):
         default=50,
         verbose_name=_("Pass Mark"),
         validators=[MaxValueValidator(100)],
-        help_text=_("Percentage required to pass exam."),
+        help_text=_("Percentage required to pass exam, if it's not graded enter 0."),
     )
 
     draft = models.BooleanField(
@@ -117,11 +117,11 @@ class Quiz(models.Model):
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         if self.single_attempt is True:
             self.exam_paper = True
-
-        if self.pass_mark > 100:
-            raise ValidationError("%s is above 100" % self.pass_mark)
-        if self.pass_mark < 0:
-            raise ValidationError("%s is below 0" % self.pass_mark)
+        if self.pass_mark is not None:
+            if self.pass_mark > 100:
+                raise ValidationError("%s is above 100" % self.pass_mark)
+            if self.pass_mark < 0:
+                raise ValidationError("%s is below 0" % self.pass_mark)
 
         super(Quiz, self).save(force_insert, force_update, *args, **kwargs)
 

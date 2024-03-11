@@ -110,7 +110,7 @@ msgid "Pass Mark"
 msgstr ""
 
 #: .\quiz\models.py:67
-msgid "Percentage required to pass exam."
+msgid "Percentage required to pass exam, if it's not graded enter 0."
 msgstr ""
 
 #: .\quiz\models.py:69
