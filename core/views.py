@@ -4,10 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, lecturer_required
-from accounts.models import User
+from accounts.models import User, Student
 
 from .forms import NewsAndEventsForm, SemesterForm, SessionForm
 from .models import *
+from .models import NewsAndEvents, ActivityLog, Session, Semester
 
 
 # ########################################################
@@ -15,12 +16,30 @@ from .models import *
 # ########################################################
 @login_required
 def home_view(request):
-    items = NewsAndEvents.objects.filter(organization=request.user.organization).order_by("-updated_date")
+    items = NewsAndEvents.objects.filter(
+        organization=request.user.organization
+    ).order_by("-updated_date")
     context = {
         "title": "News & Events",
         "items": items,
     }
     return render(request, "core/index.html", context)
+
+
+@login_required
+@admin_required
+def dashboard_view(request):
+    logs = ActivityLog.objects.all().order_by("-created_at")[:10]
+    gender_count = Student.get_gender_count()
+    context = {
+        "student_count": User.objects.get_student_count(),
+        "lecturer_count": User.objects.get_lecturer_count(),
+        "superuser_count": User.objects.get_superuser_count(),
+        "males_count": gender_count["M"],
+        "females_count": gender_count["F"],
+        "logs": logs,
+    }
+    return render(request, "core/dashboard.html", context)
 
 
 @login_required
@@ -295,16 +314,3 @@ def semester_delete_view(request, pk):
         semester.delete()
         messages.success(request, "Semester successfully deleted")
     return redirect("semester_list")
-
-
-@login_required
-@admin_required
-def dashboard_view(request):
-    logs = ActivityLog.objects.all().order_by("-created_at")[:10]
-    context = {
-        "student_count": User.get_student_count(),
-        "lecturer_count": User.get_lecturer_count(),
-        "superuser_count": User.get_superuser_count(),
-        "logs": logs,
-    }
-    return render(request, "core/dashboard.html", context)

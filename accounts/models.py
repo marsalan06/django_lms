@@ -56,6 +56,8 @@ STATUS_CHOICES = [
     (INACTIVE, "Inactive"),
 ]
 
+GENDERS = (("M", "Male"), ("F", "Female"))
+
 
 class CustomUserManager(UserManager):
     def search(self, query=None):
@@ -137,6 +139,7 @@ class User(AbstractUser):
     is_lecturer = models.BooleanField(default=False)
     is_parent = models.BooleanField(default=False)
     is_dep_head = models.BooleanField(default=False)
+    gender = models.CharField(max_length=1, choices=GENDERS, blank=True, null=True)
     phone = models.CharField(max_length=60, blank=True, null=True)
     address = models.CharField(max_length=60, blank=True, null=True)
     picture = models.ImageField(
@@ -261,6 +264,13 @@ class Student(models.Model):
         # return self.student.get_full_name
         return self.student.username
 
+    @classmethod
+    def get_gender_count(cls):
+        males_count = Student.objects.filter(student__gender="M").count()
+        females_count = Student.objects.filter(student__gender="F").count()
+
+        return {"M": males_count, "F": females_count}
+
     def get_absolute_url(self):
         return reverse("profile_single", kwargs={"id": self.id})
 
@@ -291,6 +301,17 @@ class Parent(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class DepartmentHead(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    department = models.ForeignKey(Program, on_delete=models.CASCADE, null=True)
+
+    class Meta:
+        ordering = ("-user__date_joined",)
+
+    def __str__(self):
+        return "{}".format(self.user)
 
 
 class DepartmentHead(models.Model):

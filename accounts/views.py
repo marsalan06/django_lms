@@ -242,7 +242,9 @@ def staff_add_view(request):
         form = StaffAddForm(request.POST, user=request.user)
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
+
         if form.is_valid():
+
             form.save()
             messages.success(
                 request,
@@ -477,6 +479,7 @@ def edit_student(request, pk):
 
 @method_decorator([login_required, admin_required], name="dispatch")
 class StudentListView(FilterView):
+    queryset = Student.objects.all()
     filterset_class = StudentFilter
     template_name = "accounts/student_list.html"
     paginate_by = 10
