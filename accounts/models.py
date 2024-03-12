@@ -312,14 +312,3 @@ class DepartmentHead(models.Model):
 
     def __str__(self):
         return "{}".format(self.user)
-
-
-class DepartmentHead(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    department = models.ForeignKey(Program, on_delete=models.CASCADE, null=True)
-
-    class Meta:
-        ordering = ("-user__date_joined",)
-
-    def __str__(self):
-        return "{}".format(self.user)
