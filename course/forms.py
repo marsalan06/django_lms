@@ -119,7 +119,6 @@ class UploadFormFile(forms.ModelForm):
         fields = (
             "title",
             "file",
-            "course",
         )
 
     def __init__(self, *args, **kwargs):

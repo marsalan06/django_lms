@@ -270,7 +270,7 @@
 		<div class="card w-100 h-100 p-3">
 			<h5>Latest activities</h5>
 			<ul class="ps-2 small">
-				{% for log in logs %}d-flex 
+				{% for log in logs %}
 				<li>{{ log.message }} <span class="text-muted">- {{ log.created_at }}</span></li>
 				{% empty %}
 				<li>No recent activity</li>
@@ -305,6 +305,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+	const malesCount = {{ males_count }}
+	const femalesCount = {{ females_count }}
+	
 	$(document).ready(function () {
 
 		// Setup
@@ -478,7 +481,7 @@
 			],
 			datasets: [{
 				label: "Students Gender Dataset",
-				data: [56, 44],
+				data: [malesCount, femalesCount],
 				backgroundColor: [
 				'rgb(255, 99, 132)',
 				'rgb(54, 162, 235)'

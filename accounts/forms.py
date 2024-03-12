@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from django.conf import settings
+from django.core.mail import send_mail
 from django import forms
 from django.db import transaction
 from django.utils.timezone import now
@@ -20,6 +24,7 @@ from .models import (
     TYPE_OF_ORG,
     STATUS_CHOICES,
 )
+from .models import User, Student, Parent, RELATION_SHIP, LEVEL, GENDERS
 
 
 class StaffAddForm(UserCreationForm):
@@ -32,6 +37,7 @@ class StaffAddForm(UserCreationForm):
             }
         ),
         label="Username",
+        required=False,
     )
 
     first_name = forms.CharField(
@@ -98,6 +104,7 @@ class StaffAddForm(UserCreationForm):
             }
         ),
         label="Password",
+        required=False,
     )
 
     password2 = forms.CharField(
@@ -109,6 +116,7 @@ class StaffAddForm(UserCreationForm):
             }
         ),
         label="Password Confirmation",
+        required=False,
     )
 
     organization = forms.ModelChoiceField(
@@ -143,8 +151,31 @@ class StaffAddForm(UserCreationForm):
         user.email = self.cleaned_data.get("email")
         if self.cleaned_data["organization"]:
             user.organization = self.cleaned_data["organization"]
+
+        # Generate a username
+        registration_date = datetime.now().strftime("%Y")
+        total_lecturers_count = User.objects.filter(is_lecturer=True).count()
+        generated_username = (
+            f"{settings.LECTURER_ID_PREFIX}-{registration_date}-{total_lecturers_count}"
+        )
+        # Generate a password
+        generated_password = User.objects.make_random_password()
+
+        user.username = generated_username
+        user.set_password(generated_password)
+
         if commit:
             user.save()
+
+            # Send email with the generated credentials
+            send_mail(
+                "Your Django LMS account credentials",
+                f"Your username: {generated_username}\nYour password: {generated_password}",
+                "from@example.com",
+                [user.email],
+                fail_silently=False,
+            )
+
         return user
 
 
@@ -239,6 +270,7 @@ class StudentAddForm(UserCreationForm):
             attrs={"type": "text", "class": "form-control", "id": "username_id"}
         ),
         label="Username",
+        required=False,
     )
     address = forms.CharField(
         max_length=30,
@@ -284,6 +316,15 @@ class StudentAddForm(UserCreationForm):
         label="Last name",
     )
 
+    gender = forms.CharField(
+        widget=forms.Select(
+            choices=GENDERS,
+            attrs={
+                "class": "browser-default custom-select form-control",
+            },
+        ),
+    )
+
     level = forms.CharField(
         widget=forms.Select(
             choices=LEVEL,
@@ -320,6 +361,7 @@ class StudentAddForm(UserCreationForm):
             }
         ),
         label="Password",
+        required=False,
     )
 
     password2 = forms.CharField(
@@ -331,6 +373,7 @@ class StudentAddForm(UserCreationForm):
             }
         ),
         label="Password Confirmation",
+        required=False,
     )
 
     # def validate_email(self):
@@ -342,21 +385,46 @@ class StudentAddForm(UserCreationForm):
         model = User
 
     @transaction.atomic()
-    def save(self):
+    def save(self, commit=True):
         user = super().save(commit=False)
         user.is_student = True
         user.first_name = self.cleaned_data.get("first_name")
         user.last_name = self.cleaned_data.get("last_name")
+        user.gender = self.cleaned_data.get("gender")
         user.address = self.cleaned_data.get("address")
         user.phone = self.cleaned_data.get("phone")
+        user.address = self.cleaned_data.get("address")
         user.email = self.cleaned_data.get("email")
-        user.save()
-        student = Student.objects.create(
-            student=user,
-            level=self.cleaned_data.get("level"),
-            program=self.cleaned_data.get("program"),
+
+        # Generate a username based on first and last name and registration date
+        registration_date = datetime.now().strftime("%Y")
+        total_students_count = Student.objects.count()
+        generated_username = (
+            f"{settings.STUDENT_ID_PREFIX}-{registration_date}-{total_students_count}"
         )
-        student.save()
+        # Generate a password
+        generated_password = User.objects.make_random_password()
+
+        user.username = generated_username
+        user.set_password(generated_password)
+
+        if commit:
+            user.save()
+            Student.objects.create(
+                student=user,
+                level=self.cleaned_data.get("level"),
+                program=self.cleaned_data.get("program"),
+            )
+
+            # Send email with the generated credentials
+            send_mail(
+                "Your Django LMS account credentials",
+                f"Your ID: {generated_username}\nYour password: {generated_password}",
+                settings.EMAIL_FROM_ADDRESS,
+                [user.email],
+                fail_silently=False,
+            )
+
         return user
 
 
@@ -389,6 +457,15 @@ class ProfileUpdateForm(UserChangeForm):
             }
         ),
         label="Last Name",
+    )
+
+    gender = forms.CharField(
+        widget=forms.Select(
+            choices=GENDERS,
+            attrs={
+                "class": "browser-default custom-select form-control",
+            },
+        ),
     )
 
     phone = forms.CharField(
@@ -431,12 +508,13 @@ class ProfileUpdateForm(UserChangeForm):
     class Meta:
         model = User
         fields = [
+            "first_name",
+            "last_name",
+            "gender",
             "email",
             "phone",
             "address",
             "picture",
-            "first_name",
-            "last_name",
             "organization",
         ]
 
