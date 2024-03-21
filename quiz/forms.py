@@ -7,7 +7,14 @@ from django.db import transaction
 from django.forms.models import inlineformset_factory
 
 from accounts.models import User
-from .models import Question, Quiz, MCQuestion, Choice
+from .models import (
+    Question,
+    Quiz,
+    MCQuestion,
+    Choice,
+    DescriptiveQuestion,
+    DescriptiveAnswer,
+)
 
 
 class QuestionForm(forms.Form):
@@ -42,9 +49,9 @@ class QuizAddForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(QuizAddForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
-            self.fields[
-                "questions"
-            ].initial = self.instance.question_set.all().select_subclasses()
+            self.fields["questions"].initial = (
+                self.instance.question_set.all().select_subclasses()
+            )
 
     def save(self, commit=True):
         quiz = super(QuizAddForm, self).save(commit=False)
@@ -68,3 +75,15 @@ MCQuestionFormSet = inlineformset_factory(
     can_delete=True,
     extra=5,
 )
+
+
+class DescriptiveQuestionForm(forms.ModelForm):
+    class Meta:
+        model = DescriptiveQuestion
+        fields = ["quiz", "question", "file", "explanation", "instructor_answer"]
+
+
+class DescriptiveAnswerForm(forms.ModelForm):
+    class Meta:
+        model = DescriptiveAnswer
+        fields = ["question", "answer_text"]

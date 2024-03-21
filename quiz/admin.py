@@ -11,6 +11,8 @@ from .models import (
     Choice,
     EssayQuestion,
     Sitting,
+    DescriptiveAnswer,
+    DescriptiveQuestion,
 )
 
 
@@ -33,9 +35,9 @@ class QuizAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(QuizAdminForm, self).__init__(*args, **kwargs)
         if self.instance.pk:
-            self.fields[
-                "questions"
-            ].initial = self.instance.question_set.all().select_subclasses()
+            self.fields["questions"].initial = (
+                self.instance.question_set.all().select_subclasses()
+            )
 
     def save(self, commit=True):
         quiz = super(QuizAdminForm, self).save(commit=False)
@@ -86,6 +88,40 @@ class EssayQuestionAdmin(admin.ModelAdmin):
     filter_horizontal = ("quiz",)
 
 
+class DescriptiveQuestionForm(forms.ModelForm):
+    class Meta:
+        model = DescriptiveQuestion
+        fields = "__all__"  # Or list specific fields you want to include
+
+
+class DescriptiveQuestionAdmin(admin.ModelAdmin):
+    form = DescriptiveQuestionForm
+    list_display = ["question", "quiz", "instructor_answer"]  # Customize as needed
+    search_fields = [
+        "question",
+        "quiz__title",
+    ]  # Allows searching by question text and quiz title
+
+
+admin.site.register(DescriptiveQuestion, DescriptiveQuestionAdmin)
+
+
+class DescriptiveAnswerForm(forms.ModelForm):
+    class Meta:
+        model = DescriptiveAnswer
+        fields = "__all__"
+
+
+class DescriptiveAnswerAdmin(admin.ModelAdmin):
+    form = DescriptiveAnswerForm
+    list_display = ["answer_text", "question"]  # Customize as needed
+    search_fields = [
+        "answer_text",
+        "question__question",
+    ]  # Allows searching by answer text and related question text
+
+
+admin.site.register(DescriptiveAnswer, DescriptiveAnswerAdmin)
 admin.site.register(Quiz, QuizAdmin)
 admin.site.register(MCQuestion, MCQuestionAdmin)
 admin.site.register(Progress, ProgressAdmin)

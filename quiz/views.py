@@ -1,5 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.urls import reverse_lazy
+from rest_framework import viewsets
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils.decorators import method_decorator
 from django.views.generic import (
@@ -15,14 +17,27 @@ from django.contrib import messages
 from django.db import transaction
 
 from accounts.decorators import lecturer_required
-from .models import Course, Progress, Sitting, EssayQuestion, Quiz, MCQuestion, Question
+from .models import (
+    Course,
+    Progress,
+    Sitting,
+    EssayQuestion,
+    Quiz,
+    MCQuestion,
+    Question,
+    DescriptiveAnswer,
+    DescriptiveQuestion,
+)
 from .forms import (
     QuizAddForm,
     MCQuestionForm,
     MCQuestionFormSet,
     QuestionForm,
     EssayForm,
+    DescriptiveQuestionForm,
+    DescriptiveAnswerForm,
 )
+from .serializers import DescriptiveAnswerSerializer, DescriptiveQuestionSerializer
 
 
 @method_decorator([login_required, lecturer_required], name="dispatch")
@@ -49,10 +64,20 @@ class QuizCreateView(CreateView):
             self.object = form.save()
             if form.is_valid():
                 form.instance = self.object
+                print("-------form-----", form.instance.type_of_quiz)
                 form.save()
-                return redirect(
-                    "mc_create", slug=self.kwargs["slug"], quiz_id=form.instance.id
-                )
+                if form.instance.type_of_quiz == "MCQ":
+                    return redirect(
+                        "mc_create", slug=self.kwargs["slug"], quiz_id=self.object.id
+                    )
+                elif (
+                    form.instance.type_of_quiz == "Essay"
+                ):  # Assuming the other type is 'essay'
+                    return redirect(
+                        "create_descriptive_question",
+                        slug=self.kwargs["slug"],
+                        quiz_id=self.object.id,
+                    )
         return super(QuizCreateView, self).form_invalid(form)
 
 
@@ -356,3 +381,29 @@ class QuizTake(FormView):
             self.sitting.delete()
 
         return render(self.request, self.result_template_name, results)
+
+
+class DescriptiveQuestionListView(ListView):
+    model = DescriptiveQuestion
+    context_object_name = "questions"
+    template_name = "descriptivequestion_list.html"
+
+
+class DescriptiveQuestionDetailView(DetailView):
+    model = DescriptiveQuestion
+    context_object_name = "question"
+    template_name = "quiz/descriptivequestion_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = DescriptiveAnswerForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = DescriptiveAnswerForm(request.POST)
+        if form.is_valid():
+            answer = form.save(commit=False)
+            answer.question = self.get_object()
+            answer.save()
+            return redirect("descriptive_question_detail", pk=answer.question.pk)
+        return self.render_to_response(self.get_context_data(form=form))

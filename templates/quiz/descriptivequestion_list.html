@@ -1,0 +1,10 @@
+<!-- templates/yourapp/descriptivequestion_list.html -->
+{% load static %}
+{% block content %}
+    <h2>Descriptive Questions</h2>
+    <ul>
+        {% for question in questions %}
+            <li><a href="{% url 'descriptive_question_detail' question.id %}">{{ question.question }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -30,6 +30,10 @@ CATEGORY_OPTIONS = (
     ("exam", _("Exam")),
     ("practice", _("Practice Quiz")),
 )
+QUIZ_OPTIONS = (
+    ("MCQ", _("MCQ")),
+    ("Essay", _("Essay")),
+)
 
 
 class QuizManager(models.Manager):
@@ -58,6 +62,7 @@ class Quiz(models.Model):
         help_text=_("A detailed description of the quiz"),
     )
     category = models.TextField(choices=CATEGORY_OPTIONS, blank=True)
+    type_of_quiz = models.TextField(choices=QUIZ_OPTIONS, blank=False)
     random_order = models.BooleanField(
         blank=False,
         default=False,
@@ -150,6 +155,39 @@ def quiz_pre_save_receiver(sender, instance, *args, **kwargs):
 
 
 pre_save.connect(quiz_pre_save_receiver, sender=Quiz)
+
+
+class DescriptiveQuestion(models.Model):
+    quiz = models.ForeignKey(
+        Quiz, on_delete=models.CASCADE, related_name="descriptive_questions"
+    )
+    question = models.CharField(max_length=255)
+    file = models.FileField(
+        upload_to="descriptive_questions_files/", null=True, blank=True
+    )
+    explanation = models.TextField(null=True, blank=True)
+    instructor_answer = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Descriptive Question"
+        verbose_name_plural = "Descriptive Questions"
+
+    def __str__(self):
+        return self.question
+
+
+class DescriptiveAnswer(models.Model):
+    question = models.ForeignKey(
+        DescriptiveQuestion, on_delete=models.CASCADE, related_name="answers"
+    )
+    answer_text = models.TextField()
+
+    class Meta:
+        verbose_name = "Descriptive Answer"
+        verbose_name_plural = "Descriptive Answers"
+
+    def __str__(self):
+        return f"Answer to {self.question.question[:50]}..."  # Shows the beginning of the question
 
 
 class ProgressManager(models.Manager):

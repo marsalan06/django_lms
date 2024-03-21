@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import *
 
 urlpatterns = [
@@ -19,6 +20,16 @@ urlpatterns = [
         "mc-question/add/<slug>/<int:quiz_id>/",
         MCQuestionCreate.as_view(),
         name="mc_create",
+    ),
+    path(
+        "questions/",
+        DescriptiveQuestionListView.as_view(),
+        name="descriptive_question_list",
+    ),
+    path(
+        "questions/<int:pk>/",
+        DescriptiveQuestionDetailView.as_view(),
+        name="descriptive_question_detail",
     ),
     # path('mc-question/add/<int:pk>/<quiz_pk>/', MCQuestionCreate.as_view(), name='mc_create'),
 ]

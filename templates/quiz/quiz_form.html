@@ -53,6 +53,7 @@
                             <span class="danger">{{ form.questions.errors }}</span>
                             <small class="d-block text-muted">Hold down "Control", or "Command" on a Mac, to select more than one.</small>
                         </div>
+                        {{ form.type_of_quiz | as_crispy_field }}
                         {{ form.random_order|as_crispy_field }}                    
                         {{ form.answers_at_end|as_crispy_field }}                    
                         {{ form.exam_paper|as_crispy_field }}                    

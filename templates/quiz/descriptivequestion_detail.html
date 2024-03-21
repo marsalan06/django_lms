@@ -1,0 +1,12 @@
+{% load static %}
+{% block content %}
+    <h2>{{ question.question }}</h2>
+    <p>{{ question.explanation }}</p>
+
+    <h3>Submit your answer:</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}
