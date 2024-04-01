@@ -32,7 +32,7 @@ CATEGORY_OPTIONS = (
 )
 QUIZ_OPTIONS = (
     ("MCQ", _("MCQ")),
-    ("Essay", _("Essay")),
+    ("Descriptive", _("Descriptive")),
 )
 
 

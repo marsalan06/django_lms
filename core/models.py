@@ -65,6 +65,7 @@ class NewsAndEvents(models.Model):
         blank=True,
         related_name="organization_news_events",
     )
+    tags = models.JSONField(blank=True, null=True)
 
     objects = NewsAndEventsManager()
 

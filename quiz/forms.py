@@ -80,7 +80,7 @@ MCQuestionFormSet = inlineformset_factory(
 class DescriptiveQuestionForm(forms.ModelForm):
     class Meta:
         model = DescriptiveQuestion
-        fields = ["quiz", "question", "file", "explanation", "instructor_answer"]
+        fields = ["question", "file", "explanation", "instructor_answer"]
 
 
 class DescriptiveAnswerForm(forms.ModelForm):

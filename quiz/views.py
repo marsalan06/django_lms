@@ -71,10 +71,10 @@ class QuizCreateView(CreateView):
                         "mc_create", slug=self.kwargs["slug"], quiz_id=self.object.id
                     )
                 elif (
-                    form.instance.type_of_quiz == "Essay"
+                    form.instance.type_of_quiz == "Descriptive"
                 ):  # Assuming the other type is 'essay'
                     return redirect(
-                        "create_descriptive_question",
+                        "add_descriptive_question",
                         slug=self.kwargs["slug"],
                         quiz_id=self.object.id,
                     )
@@ -105,7 +105,10 @@ class QuizUpdateView(UpdateView):
             if form.is_valid():
                 form.instance = self.object
                 form.save()
-                return redirect("quiz_index", course.slug)
+                return redirect(
+                    "mc_create", slug=course.slug, quiz_id=context["quiz"].id
+                )
+                # return redirect("quiz_index", course.slug)
         return super(QuizUpdateView, self).form_invalid(form)
 
 
@@ -117,6 +120,26 @@ def quiz_delete(request, slug, pk):
     quiz.delete()
     messages.success(request, f"successfuly deleted.")
     return redirect("quiz_index", quiz.course.slug)
+
+
+def add_descriptive_question(request, slug, quiz_id):
+    quiz = get_object_or_404(Quiz, pk=quiz_id)
+    if request.method == "POST":
+        form = DescriptiveQuestionForm(request.POST, request.FILES)
+        if form.is_valid():
+            descriptive_question = form.save(commit=False)
+            descriptive_question.quiz = quiz
+            descriptive_question.save()
+            # Redirect to the same page for a new form
+            return redirect("add_descriptive_question", slug=slug, quiz_id=quiz_id)
+    else:
+        form = DescriptiveQuestionForm()
+
+    return render(
+        request,
+        "quiz/add_descriptive_question.html",
+        {"form": form, "quiz": quiz, "slug": slug},
+    )
 
 
 @method_decorator([login_required, lecturer_required], name="dispatch")
@@ -269,12 +292,28 @@ class QuizTake(FormView):
     def dispatch(self, request, *args, **kwargs):
         self.quiz = get_object_or_404(Quiz, slug=self.kwargs["slug"])
         self.course = get_object_or_404(Course, pk=self.kwargs["pk"])
-        quizQuestions = Question.objects.filter(quiz=self.quiz).count()
+        print("--------quiz instance-----", self.quiz.type_of_quiz)
         course = get_object_or_404(Course, pk=self.kwargs["pk"])
+        if self.quiz.type_of_quiz == "MCQ":
+            quizQuestions = Question.objects.filter(quiz=self.quiz).count()
 
-        if quizQuestions <= 0:
-            messages.warning(request, f"Question set of the quiz is empty. try later!")
-            return redirect("quiz_index", self.course.slug)
+            if quizQuestions <= 0:
+                messages.warning(
+                    request,
+                    f"Multiple Choice Question set of the quiz is empty. try later!",
+                )
+                return redirect("quiz_index", self.course.slug)
+
+        elif self.quiz.type_of_quiz == "Descriptive":
+            descriptiveQuestions = DescriptiveQuestion.objects.filter(
+                quiz=self.quiz
+            ).count()
+            if descriptiveQuestions <= 0:
+                messages.warning(
+                    request,
+                    f"Descriptive Question set of the quiz is empty. try later!",
+                )
+                return redirect("quiz_index", self.course.slug)
 
         if self.quiz.draft and not request.user.has_perm("quiz.change_quiz"):
             raise PermissionDenied
