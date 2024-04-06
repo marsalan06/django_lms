@@ -569,9 +569,8 @@ def user_course_list(request):
         taken_courses = TakenCourse.objects.filter(
             student__student__id=student.student.id
         )
-        courses = Course.objects.filter(level=student.level).filter(
-            program__pk=student.program.id
-        )
+
+        courses = Course.objects.filter(program__pk=student.program.id)
 
         return render(
             request,

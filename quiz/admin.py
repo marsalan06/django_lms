@@ -88,40 +88,13 @@ class EssayQuestionAdmin(admin.ModelAdmin):
     filter_horizontal = ("quiz",)
 
 
-class DescriptiveQuestionForm(forms.ModelForm):
-    class Meta:
-        model = DescriptiveQuestion
-        fields = "__all__"  # Or list specific fields you want to include
-
-
 class DescriptiveQuestionAdmin(admin.ModelAdmin):
-    form = DescriptiveQuestionForm
-    list_display = ["question", "quiz", "instructor_answer"]  # Customize as needed
-    search_fields = [
-        "question",
-        "quiz__title",
-    ]  # Allows searching by question text and quiz title
+    list_display = ("content", "id", "figure", "keywords")
+    search_fields = ["content", "explanation", "keywords"]
+    list_filter = ["figure"]
 
 
 admin.site.register(DescriptiveQuestion, DescriptiveQuestionAdmin)
-
-
-class DescriptiveAnswerForm(forms.ModelForm):
-    class Meta:
-        model = DescriptiveAnswer
-        fields = "__all__"
-
-
-class DescriptiveAnswerAdmin(admin.ModelAdmin):
-    form = DescriptiveAnswerForm
-    list_display = ["answer_text", "question"]  # Customize as needed
-    search_fields = [
-        "answer_text",
-        "question__question",
-    ]  # Allows searching by answer text and related question text
-
-
-admin.site.register(DescriptiveAnswer, DescriptiveAnswerAdmin)
 admin.site.register(Quiz, QuizAdmin)
 admin.site.register(MCQuestion, MCQuestionAdmin)
 admin.site.register(Progress, ProgressAdmin)

@@ -20,10 +20,21 @@ from .models import (
 class QuestionForm(forms.Form):
     def __init__(self, question, *args, **kwargs):
         super(QuestionForm, self).__init__(*args, **kwargs)
-        choice_list = [x for x in question.get_choices_list()]
-        self.fields["answers"] = forms.ChoiceField(
-            choices=choice_list, widget=RadioSelect
-        )
+        # Check if the question has the `get_choices_list` method, assuming MCQs have this method.
+        if hasattr(question, "get_choices_list"):
+            choice_list = [x for x in question.get_choices_list()]
+            self.fields["answers"] = forms.ChoiceField(
+                choices=choice_list, widget=RadioSelect
+            )
+        elif hasattr(
+            question, "sample_answer"
+        ):  # Assuming descriptive questions have a 'sample_answer' attribute
+            # For descriptive questions, provide a large text area for input.
+            self.fields["answers"] = forms.CharField(
+                widget=Textarea(attrs={"style": "width:100%", "rows": 5}),
+                label="Your Answer",
+                help_text="Write your answer here.",
+            )
 
 
 class EssayForm(forms.Form):
@@ -80,7 +91,13 @@ MCQuestionFormSet = inlineformset_factory(
 class DescriptiveQuestionForm(forms.ModelForm):
     class Meta:
         model = DescriptiveQuestion
-        fields = ["question", "file", "explanation", "instructor_answer"]
+        fields = ["content", "figure", "explanation", "sample_answer", "keywords"]
+        widgets = {
+            "content": Textarea(attrs={"cols": 80, "rows": 3}),
+            "explanation": Textarea(attrs={"cols": 80, "rows": 3}),
+            "sample_answer": Textarea(attrs={"cols": 80, "rows": 3}),
+            "keywords": Textarea(attrs={"cols": 80, "rows": 2}),
+        }
 
 
 class DescriptiveAnswerForm(forms.ModelForm):

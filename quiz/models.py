@@ -157,39 +157,6 @@ def quiz_pre_save_receiver(sender, instance, *args, **kwargs):
 pre_save.connect(quiz_pre_save_receiver, sender=Quiz)
 
 
-class DescriptiveQuestion(models.Model):
-    quiz = models.ForeignKey(
-        Quiz, on_delete=models.CASCADE, related_name="descriptive_questions"
-    )
-    question = models.CharField(max_length=255)
-    file = models.FileField(
-        upload_to="descriptive_questions_files/", null=True, blank=True
-    )
-    explanation = models.TextField(null=True, blank=True)
-    instructor_answer = models.TextField(null=True, blank=True)
-
-    class Meta:
-        verbose_name = "Descriptive Question"
-        verbose_name_plural = "Descriptive Questions"
-
-    def __str__(self):
-        return self.question
-
-
-class DescriptiveAnswer(models.Model):
-    question = models.ForeignKey(
-        DescriptiveQuestion, on_delete=models.CASCADE, related_name="answers"
-    )
-    answer_text = models.TextField()
-
-    class Meta:
-        verbose_name = "Descriptive Answer"
-        verbose_name_plural = "Descriptive Answers"
-
-    def __str__(self):
-        return f"Answer to {self.question.question[:50]}..."  # Shows the beginning of the question
-
-
 class ProgressManager(models.Manager):
     def new_progress(self, user):
         new_progress = self.create(user=user, score="")
@@ -580,6 +547,48 @@ class Choice(models.Model):
     class Meta:
         verbose_name = _("Choice")
         verbose_name_plural = _("Choices")
+
+
+class DescriptiveQuestion(Question):
+    sample_answer = models.TextField(
+        blank=True,
+        help_text=_(
+            "A model answer to guide evaluation or provide automated feedback."
+        ),
+        verbose_name=_("Sample Answer"),
+    )
+    keywords = models.TextField(
+        blank=True,
+        help_text=_("Comma-separated keywords that are expected in a correct answer."),
+        verbose_name=_("Keywords"),
+    )
+
+    def check_if_correct(self, user_response):
+        # Convert the string of keywords into a list and strip any extra spaces
+        keyword_list = [keyword.strip().lower() for keyword in self.keywords.split(",")]
+        # Check if any of the keywords are in the user's response
+        return any(keyword in user_response.lower() for keyword in keyword_list)
+
+    class Meta:
+        verbose_name = _("Descriptive Question")
+        verbose_name_plural = _("Descriptive Questions")
+
+    def __str__(self):
+        return self.content
+
+
+class DescriptiveAnswer(models.Model):
+    question = models.ForeignKey(
+        DescriptiveQuestion, on_delete=models.CASCADE, related_name="answers"
+    )
+    answer_text = models.TextField()
+
+    class Meta:
+        verbose_name = "Descriptive Answer"
+        verbose_name_plural = "Descriptive Answers"
+
+    def __str__(self):
+        return f"Answer to {self.question.question[:50]}..."  # Shows the beginning of the question
 
 
 class EssayQuestion(Question):

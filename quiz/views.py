@@ -70,11 +70,9 @@ class QuizCreateView(CreateView):
                     return redirect(
                         "mc_create", slug=self.kwargs["slug"], quiz_id=self.object.id
                     )
-                elif (
-                    form.instance.type_of_quiz == "Descriptive"
-                ):  # Assuming the other type is 'essay'
+                elif form.instance.type_of_quiz == "Descriptive":
                     return redirect(
-                        "add_descriptive_question",
+                        "descriptive_create",
                         slug=self.kwargs["slug"],
                         quiz_id=self.object.id,
                     )
@@ -105,9 +103,16 @@ class QuizUpdateView(UpdateView):
             if form.is_valid():
                 form.instance = self.object
                 form.save()
-                return redirect(
-                    "mc_create", slug=course.slug, quiz_id=context["quiz"].id
-                )
+                if context["quiz"].type_of_quiz == "MCQ":
+                    return redirect(
+                        "mc_create", slug=self.kwargs["slug"], quiz_id=self.object.id
+                    )
+                elif context["quiz"].type_of_quiz == "Descriptive":
+                    return redirect(
+                        "descriptive_create",
+                        slug=self.kwargs["slug"],
+                        quiz_id=self.object.id,
+                    )
                 # return redirect("quiz_index", course.slug)
         return super(QuizUpdateView, self).form_invalid(form)
 
@@ -304,16 +309,15 @@ class QuizTake(FormView):
                 )
                 return redirect("quiz_index", self.course.slug)
 
-        elif self.quiz.type_of_quiz == "Descriptive":
-            descriptiveQuestions = DescriptiveQuestion.objects.filter(
-                quiz=self.quiz
-            ).count()
-            if descriptiveQuestions <= 0:
-                messages.warning(
-                    request,
-                    f"Descriptive Question set of the quiz is empty. try later!",
-                )
-                return redirect("quiz_index", self.course.slug)
+        elif (
+            self.quiz.type_of_quiz == "Descriptive"
+            and Question.objects.filter(quiz=self.quiz).count() == 0
+        ):
+            messages.warning(
+                request,
+                "No descriptive questions are set for this quiz. Please try later!",
+            )
+            return redirect("quiz_index", slug=self.course.slug)
 
         if self.quiz.draft and not request.user.has_perm("quiz.change_quiz"):
             raise PermissionDenied
@@ -446,3 +450,43 @@ class DescriptiveQuestionDetailView(DetailView):
             answer.save()
             return redirect("descriptive_question_detail", pk=answer.question.pk)
         return self.render_to_response(self.get_context_data(form=form))
+
+
+@method_decorator([login_required, lecturer_required], name="dispatch")
+# class being utalized
+class DescriptiveQuestionCreate(CreateView):
+    model = DescriptiveQuestion
+    form_class = DescriptiveQuestionForm
+
+    def get_context_data(self, **kwargs):
+        context = super(DescriptiveQuestionCreate, self).get_context_data(**kwargs)
+        context["course"] = Course.objects.get(slug=self.kwargs["slug"])
+        context["quiz_obj"] = Quiz.objects.get(id=self.kwargs["quiz_id"])
+        context["quizQuestions"] = DescriptiveQuestion.objects.filter(
+            quiz=context["quiz_obj"]
+        ).count()
+        # if self.request.POST:
+        #     context["form"] = DescriptiveQuestionForm(self.request.POST)
+        # else:
+        #     context["form"] = DescriptiveQuestionForm(
+        #         initial={"quiz": self.kwargs["quiz_id"]}
+        #     )
+
+        return context
+
+    def form_valid(self, form):
+        with transaction.atomic():
+            self.object = form.save(commit=False)
+            self.object.save()
+            # Assign the quiz using the set method for many-to-many relationships
+            self.object.quiz.set([self.kwargs["quiz_id"]])
+            form.save_m2m()  # This is needed to save the many-to-many relationship set above
+            if "another" in self.request.POST:
+                return redirect(
+                    "descriptive_create",
+                    slug=self.kwargs["slug"],
+                    quiz_id=self.kwargs["quiz_id"],
+                )
+            return redirect("quiz_index", slug=self.kwargs["slug"])
+
+        return super().form_invalid(form)  # Handle the form invalid case

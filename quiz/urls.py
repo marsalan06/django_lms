@@ -36,5 +36,10 @@ urlpatterns = [
         DescriptiveQuestionDetailView.as_view(),
         name="descriptive_question_detail",
     ),
+    path(
+        "<slug:slug>/descriptive-question/add/<int:quiz_id>/",
+        DescriptiveQuestionCreate.as_view(),
+        name="descriptive_create",
+    ),
     # path('mc-question/add/<int:pk>/<quiz_pk>/', MCQuestionCreate.as_view(), name='mc_create'),
 ]
