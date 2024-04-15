@@ -167,14 +167,14 @@ class StaffAddForm(UserCreationForm):
         if commit:
             user.save()
 
-            # Send email with the generated credentials
-            send_mail(
-                "Your Django LMS account credentials",
-                f"Your username: {generated_username}\nYour password: {generated_password}",
-                "from@example.com",
-                [user.email],
-                fail_silently=False,
-            )
+            # # Send email with the generated credentials
+            # send_mail(
+            #     "Your Django LMS account credentials",
+            #     f"Your username: {generated_username}\nYour password: {generated_password}",
+            #     "from@example.com",
+            #     [user.email],
+            #     fail_silently=False,
+            # )
 
         return user
 
@@ -429,15 +429,6 @@ class StudentAddForm(UserCreationForm):
 
 
 class ProfileUpdateForm(UserChangeForm):
-    email = forms.EmailField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "email",
-                "class": "form-control",
-            }
-        ),
-        label="Email Address",
-    )
 
     first_name = forms.CharField(
         widget=forms.TextInput(

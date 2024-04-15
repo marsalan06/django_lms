@@ -191,7 +191,9 @@ def admin_panel(request):
 @login_required
 def profile_update(request):
     if request.method == "POST":
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
+        form = ProfileUpdateForm(
+            request.POST, request.FILES, instance=request.user, user=request.user
+        )
         if form.is_valid():
             form.save()
             messages.success(request, "Your profile has been updated successfully.")
@@ -199,7 +201,7 @@ def profile_update(request):
         else:
             messages.error(request, "Please correct the error(s) below.")
     else:
-        form = ProfileUpdateForm(instance=request.user)
+        form = ProfileUpdateForm(instance=request.user, user=request.user)
     return render(
         request,
         "setting/profile_info_change.html",
