@@ -424,6 +424,7 @@ class StudentAddForm(UserCreationForm):
             #     [user.email],
             #     fail_silently=False,
             # )
+        print("--------user----password----: ", user.username, generated_password)
 
         return user
 

@@ -458,7 +458,9 @@ def edit_student(request, pk):
     # instance = User.objects.get(pk=pk)
     instance = get_object_or_404(User, is_student=True, pk=pk)
     if request.method == "POST":
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=instance)
+        form = ProfileUpdateForm(
+            request.POST, request.FILES, instance=instance, user=request.user
+        )
         full_name = instance.get_full_name
         if form.is_valid():
             form.save()
@@ -468,7 +470,7 @@ def edit_student(request, pk):
         else:
             messages.error(request, "Please correct the error below.")
     else:
-        form = ProfileUpdateForm(instance=instance)
+        form = ProfileUpdateForm(instance=instance, user=request.user)
     return render(
         request,
         "accounts/edit_student.html",
