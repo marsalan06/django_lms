@@ -87,7 +87,9 @@ class CourseAllocationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
         super(CourseAllocationForm, self).__init__(*args, **kwargs)
-        self.fields["lecturer"].queryset = User.objects.filter(is_lecturer=True)
+        self.fields["lecturer"].queryset = User.objects.filter(
+            is_lecturer=True, organization=user.organization
+        )
 
 
 class EditCourseAllocationForm(forms.ModelForm):
@@ -122,6 +124,7 @@ class UploadFormFile(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
+        slug = kwargs.pop("slug")
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["file"].widget.attrs.update({"class": "form-control"})
@@ -134,7 +137,9 @@ class UploadFormVideo(forms.ModelForm):
         fields = ("title", "video", "course", "summary")
 
     def __init__(self, *args, **kwargs):
+        slug = kwargs.pop("slug")
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["video"].widget.attrs.update({"class": "form-control"})
         self.fields["summary"].widget.attrs.update({"class": "form-control"})
+        self.fields["course"].queryset = Course.objects.filter(slug=slug)

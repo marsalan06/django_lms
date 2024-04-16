@@ -42,7 +42,6 @@
                             {{ form.courses.label }}{{ form.courses }}
                             <span class="danger">{{ form.courses.errors }}</span>
                         </div>
-                        
                     {% for course in form.courses.all %}{{ course }}{% endfor %}
 
                     <input class="btn btn-outline-primary" type="submit" value="Save">

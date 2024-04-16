@@ -332,7 +332,7 @@ def deallocate_course(request, pk):
 def handle_file_upload(request, slug):
     course = Course.objects.get(slug=slug)
     if request.method == "POST":
-        form = UploadFormFile(request.POST, request.FILES)
+        form = UploadFormFile(request.POST, request.FILES, slug=slug)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.course = course
@@ -343,7 +343,7 @@ def handle_file_upload(request, slug):
             )
             return redirect("course_detail", slug=slug)
     else:
-        form = UploadFormFile()
+        form = UploadFormFile(slug=slug)
     return render(
         request,
         "upload/upload_file_form.html",
@@ -392,7 +392,7 @@ def handle_file_delete(request, slug, file_id):
 def handle_video_upload(request, slug):
     course = Course.objects.get(slug=slug)
     if request.method == "POST":
-        form = UploadFormVideo(request.POST, request.FILES)
+        form = UploadFormVideo(request.POST, request.FILES, slug=slug)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.course = course
@@ -403,7 +403,7 @@ def handle_video_upload(request, slug):
             )
             return redirect("course_detail", slug=slug)
     else:
-        form = UploadFormVideo()
+        form = UploadFormVideo(slug=slug)
     return render(
         request,
         "upload/upload_video_form.html",

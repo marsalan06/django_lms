@@ -417,13 +417,13 @@ class StudentAddForm(UserCreationForm):
             )
 
             # Send email with the generated credentials
-            send_mail(
-                "Your Django LMS account credentials",
-                f"Your ID: {generated_username}\nYour password: {generated_password}",
-                settings.EMAIL_FROM_ADDRESS,
-                [user.email],
-                fail_silently=False,
-            )
+            # send_mail(
+            #     "Your Django LMS account credentials",
+            #     f"Your ID: {generated_username}\nYour password: {generated_password}",
+            #     settings.EMAIL_FROM_ADDRESS,
+            #     [user.email],
+            #     fail_silently=False,
+            # )
 
         return user
 

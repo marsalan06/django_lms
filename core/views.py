@@ -72,7 +72,7 @@ def post_add(request):
 def edit_post(request, pk):
     instance = get_object_or_404(NewsAndEvents, pk=pk)
     if request.method == "POST":
-        form = NewsAndEventsForm(request.POST, instance=instance)
+        form = NewsAndEventsForm(request.POST, instance=instance, user=request.user)
         title = request.POST.get("title")
         if form.is_valid():
             form.save()
@@ -82,7 +82,7 @@ def edit_post(request, pk):
         else:
             messages.error(request, "Please correct the error(s) below.")
     else:
-        form = NewsAndEventsForm(instance=instance)
+        form = NewsAndEventsForm(instance=instance, user=request.user)
     return render(
         request,
         "core/post_add.html",
