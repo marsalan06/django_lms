@@ -325,14 +325,14 @@ class StudentAddForm(UserCreationForm):
         ),
     )
 
-    level = forms.CharField(
-        widget=forms.Select(
-            choices=LEVEL,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
-        ),
-    )
+    # level = forms.CharField(
+    #     widget=forms.Select(
+    #         choices=LEVEL,
+    #         attrs={
+    #             "class": "browser-default custom-select form-control",
+    #         },
+    #     ),
+    # )
 
     program = forms.ModelChoiceField(
         queryset=Program.objects.all(),
@@ -376,6 +376,24 @@ class StudentAddForm(UserCreationForm):
         required=False,
     )
 
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.all(), required=False, label="Organization"
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+        # Dynamically filter `organization` field based on request.user
+
+        user_organization = user.organization
+        if user_organization:
+            self.fields["organization"].queryset = Organization.objects.filter(
+                organization_id=user_organization.organization_id
+            )
+        else:
+            # Fallback to default behavior if user is not provided or has no specific organization
+            self.fields["organization"].queryset = Organization.objects.all()
+
     # def validate_email(self):
     #     email = self.cleaned_data['email']
     #     if User.objects.filter(email__iexact=email, is_active=True).exists():
@@ -395,7 +413,8 @@ class StudentAddForm(UserCreationForm):
         user.phone = self.cleaned_data.get("phone")
         user.address = self.cleaned_data.get("address")
         user.email = self.cleaned_data.get("email")
-
+        if self.cleaned_data["organization"]:
+            user.organization = self.cleaned_data["organization"]
         # Generate a username based on first and last name and registration date
         registration_date = datetime.now().strftime("%Y")
         total_students_count = Student.objects.count()

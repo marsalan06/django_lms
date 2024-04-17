@@ -150,9 +150,7 @@ def profile_single(request, id):
         return render(request, "accounts/profile_single.html", context)
     elif user.is_student:
         student = Student.objects.get(student__pk=id)
-        courses = TakenCourse.objects.filter(
-            student__student__id=id, course__level=student.level
-        )
+        courses = TakenCourse.objects.filter(student__student__id=id)
         context = {
             "title": user.get_full_name,
             "user": user,
@@ -430,7 +428,7 @@ def delete_organization(request, pk):
 @admin_required
 def student_add_view(request):
     if request.method == "POST":
-        form = StudentAddForm(request.POST)
+        form = StudentAddForm(request.POST, user=request.user)
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         if form.is_valid():
@@ -443,7 +441,7 @@ def student_add_view(request):
         else:
             messages.error(request, "Correct the error(s) below.")
     else:
-        form = StudentAddForm()
+        form = StudentAddForm(user=request.user)
 
     return render(
         request,
