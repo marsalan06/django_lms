@@ -7,6 +7,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.timezone import now
 from PIL import Image
 import secrets
+import requests
+import json
 
 from course.models import Program
 
@@ -131,7 +133,42 @@ class Organization(models.Model):
             self.organization_id = (
                 Organization.objects.create_with_unique_hex_id().organization_id
             )
+        is_new = self._state.adding
         super(Organization, self).save(*args, **kwargs)
+        if is_new or self._state.adding is False:  # True if creating, False if updating
+            self.trigger_webhook()
+
+    def trigger_webhook(self):
+        # Setting up the data to be sent
+        data = {
+            "name": self.name,
+            "domain": self.domain,
+            "id": self.organization_id,
+            "address": self.address,
+            "phone_no": self.phone_number,
+            "email": self.email,
+            "topbar": "test",
+        }
+        # Preparing the file data if a logo exists
+        files = {
+            "logo": (
+                ("logo.png", open(self.logo.path, "rb"), "image/png")
+                if self.logo
+                else None
+            )
+        }
+        # URL of the webhook endpoint
+        webhook_url = f"{settings.FRONT_END_URL}school/api/webhook/receive"
+
+        try:
+            response = requests.post(
+                webhook_url, files=files, data={"data": json.dumps(data)}
+            )
+            response.raise_for_status()
+            # Optionally handle the response
+            print(f"Webhook sent. Status Code: {response.status_code}")
+        except requests.RequestException as e:
+            print(f"Failed to send webhook: {e}")
 
 
 class User(AbstractUser):
