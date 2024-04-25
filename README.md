@@ -76,6 +76,8 @@ services:
       - postgres_db_school               # Dependency on PostgreSQL database service
     env_file:
       - ./school_db/.env                    # Load environment variables from .env file
+    networks:
+      - app_network
 
   # Django LMS service
   lms:
@@ -90,6 +92,8 @@ services:
       - postgres_db # Dependency on PostgreSQL database service
     env_file:
       - ./django_lms/.env # Load environment variables from .env file
+    networks:
+      - app_network
 
   # PostgreSQL database service for school
   postgres_db_school:
@@ -101,6 +105,8 @@ services:
       - postgres_data_school:/var/lib/postgresql/data # Mounting named volume for PostgreSQL data persistence
     ports:
       - "5433:5432" # Port mapping for external access (host_port:container_port)
+    networks:
+      - app_network
 
   # PostgreSQL database service
   postgres_db:
@@ -112,12 +118,16 @@ services:
       - postgres_data:/var/lib/postgresql/data # Mounting named volume for PostgreSQL data persistence
     ports:
       - "5434:5432" # Default PostgreSQL port mapped for external access
+    networks:
+      - app_network
 
 # Named volumes for data persistence
 volumes:
   postgres_data_school:
   postgres_data:
-
+  
+networks:
+  app_network: #network
 ```
 - .env file in root of lms folder
 ```
@@ -131,6 +141,10 @@ USER_PASSWORD=[EMAIL_PASSWORD]
 DEBUG=True
 SECRET_KEY=[YOUR_SECRET_KEY]
 POSTGRES_HOST_AUTH_METHOD=trust
+EMAIL_HOST_USER=[EMAIL_HOST_USER]
+EMAIL_HOST_PASSWORD=[EMAIL_HOST_PASSWORD]
+EMAIL_FROM_ADDRESS=[EMAIL_FROM_ADDRESS]
+FRONT_END_URL=http://school:8000/
 ```
 - Create and activate a python virtual environment
 
