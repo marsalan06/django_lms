@@ -166,7 +166,8 @@ class StaffAddForm(UserCreationForm):
 
         if commit:
             user.save()
-
+            print("-------user name-----: ", generated_username)
+            print("-------password------: ", generated_password)
             # # Send email with the generated credentials
             # send_mail(
             #     "Your Django LMS account credentials",
