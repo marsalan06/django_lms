@@ -15,13 +15,17 @@ YEARS = (
 )
 
 # LEVEL_COURSE = "Level course"
-BACHLOAR_DEGREE = "Bachloar"
+BACHLOR_DEGREE = "Bachlor"
 MASTER_DEGREE = "Master"
+COLLEGE_DEGREE = "College"
+SCHOOL_DEGREE = "Schooling"
 
 LEVEL = (
     # (LEVEL_COURSE, "Level course"),
-    (BACHLOAR_DEGREE, "Bachloar Degree"),
+    (BACHLOR_DEGREE, "Bachlor Degree"),
     (MASTER_DEGREE, "Master Degree"),
+    (COLLEGE_DEGREE, "College Degree"),
+    (SCHOOL_DEGREE, "Schooling Degree"),
 )
 
 FIRST = "First"
@@ -156,7 +160,7 @@ class TakenCourse(models.Model):
         p = 0
         # point = 0
         # for i in student:
-        credit = self.course.credit
+        credit = self.course.credit  # 1
         if self.grade == A_PLUS:
             point = 4
         elif self.grade == A:
@@ -189,10 +193,15 @@ class TakenCourse(models.Model):
             course__level=self.student.level,
             course__semester=current_semester,
         )
+        # student = TakenCourse.objects.filter(
+        #     student=self.student
+        #     # course__level=self.student.level,
+        #     # course__semester=current_semester,
+        # )
         p = 0
         point = 0
         for i in student:
-            credit = i.course.credit
+            credit = i.course.credit  # 1
             if i.grade == A_PLUS:
                 point = 4
             elif i.grade == A:

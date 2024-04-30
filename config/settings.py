@@ -29,6 +29,7 @@ SECRET_KEY = config(
 DEBUG = config("DEBUG", default=True, cast=bool)
 
 ALLOWED_HOSTS = ["*", "127.0.0.1", "your-domain.com"]
+CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.app"]
 
 # change the default user models to our custom model
 AUTH_USER_MODEL = "accounts.User"
@@ -95,10 +96,10 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                # 'django.template.context_processors.i18n',
-                # 'django.template.context_processors.media',
-                # 'django.template.context_processors.static',
-                # 'django.template.context_processors.tz',
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
             ],
         },
     },
@@ -257,3 +258,4 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STUDENT_ID_PREFIX = config("STUDENT_ID_PREFIX", "ugr")
 LECTURER_ID_PREFIX = config("LECTURER_ID_PREFIX", "lec")
+FRONT_END_URL = config("FRONT_END_URL")

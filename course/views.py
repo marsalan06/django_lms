@@ -475,34 +475,41 @@ def course_registration(request):
         return redirect("course_registration")
     else:
         current_semester = Semester.objects.filter(is_current_semester=True).first()
+        print("-----current semester----", current_semester)
         if not current_semester:
             messages.error(request, "No active semester found.")
             return render(request, "course/course_registration.html")
 
         # student = Student.objects.get(student__pk=request.user.id)
         student = get_object_or_404(Student, student__id=request.user.id)
+        print("------student0-00000----", student)
         taken_courses = TakenCourse.objects.filter(student__student__id=request.user.id)
+        print("-=-------taken_courses-----", taken_courses)
         t = ()
         for i in taken_courses:
             t += (i.course.pk,)
 
         courses = (
             Course.objects.filter(
-                program__pk=student.program.id,
-                level=student.level,
-                semester=current_semester,
+                program__pk=student.program.id
+                # level=student.level,
+                # semester=current_semester,
             )
             .exclude(id__in=t)
-            .order_by("year")
+            .order_by("slug")
         )
+        print("------courses excluding taken courses------", courses)
         all_courses = Course.objects.filter(
-            level=student.level, program__pk=student.program.id
+            # level=student.level,
+            program__pk=student.program.id
         )
-
+        print("------alll courses-----", all_courses)
         no_course_is_registered = False  # Check if no course is registered
         all_courses_are_registered = False
 
-        registered_courses = Course.objects.filter(level=student.level).filter(id__in=t)
+        # registered_courses = Course.objects.filter(level=student.level).filter(id__in=t)
+        registered_courses = Course.objects.filter(id__in=t)
+        print("----registered courses-----", registered_courses)
         if (
             registered_courses.count() == 0
         ):  # Check if number of registered courses is 0
@@ -510,17 +517,18 @@ def course_registration(request):
 
         if registered_courses.count() == all_courses.count():
             all_courses_are_registered = True
-
+        print("------checks=====", "no_course_is_registered", no_course_is_registered)
+        print("all_courses_are_registered ", all_courses_are_registered)
         total_first_semester_credit = 0
         total_sec_semester_credit = 0
         total_registered_credit = 0
-        for i in courses:
-            if i.semester == "First":
-                total_first_semester_credit += int(i.credit)
-            if i.semester == "Second":
-                total_sec_semester_credit += int(i.credit)
-        for i in registered_courses:
-            total_registered_credit += int(i.credit)
+        # for i in courses:
+        #     if i.semester == "First":
+        #         total_first_semester_credit += int(i.credit)
+        #     if i.semester == "Second":
+        #         total_sec_semester_credit += int(i.credit)
+        # for i in registered_courses:
+        #     total_registered_credit += int(i.credit)
         context = {
             "is_calender_on": True,
             "all_courses_are_registered": all_courses_are_registered,
@@ -533,6 +541,7 @@ def course_registration(request):
             "total_registered_credit": total_registered_credit,
             "student": student,
         }
+        print("----------context----: ", context)
         return render(request, "course/course_registration.html", context)
 
 

@@ -74,9 +74,8 @@ def profile(request):
     user_organization = request.user.organization
 
     if request.user.is_lecturer:
-        courses = Course.objects.filter(
-            allocated_course__lecturer__pk=request.user.id
-        ).filter(semester=current_semester)
+        courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id)
+        # ).filter(semester=current_semester)
         return render(
             request,
             "accounts/profile.html",
@@ -94,9 +93,8 @@ def profile(request):
             parent = Parent.objects.get(student=level)
         except:
             parent = "no parent set"
-        courses = TakenCourse.objects.filter(
-            student__student__id=request.user.id, course__level=level.level
-        )
+        courses = TakenCourse.objects.filter(student__student__id=request.user.id)
+        # , course__level=level.level
         context = {
             "title": request.user.get_full_name,
             "parent": parent,

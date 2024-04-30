@@ -53,9 +53,12 @@ def add_score(request):
     # semester = Course.objects.filter(
     # allocated_course__lecturer__pk=request.user.id,
     # semester=current_semester)
+    # under this
+    # courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id)
     courses = Course.objects.filter(
         allocated_course__lecturer__pk=request.user.id
     ).filter(semester=current_semester)
+
     context = {
         "current_session": current_session,
         "current_semester": current_semester,
@@ -76,6 +79,9 @@ def add_score_for(request, id):
         Semester, is_current_semester=True, session=current_session
     )
     if request.method == "GET":
+        # courses = Course.objects.filter(
+        #     allocated_course__lecturer__pk=request.user.id
+        # )
         courses = Course.objects.filter(
             allocated_course__lecturer__pk=request.user.id
         ).filter(semester=current_semester)
@@ -95,6 +101,10 @@ def add_score_for(request, id):
             .filter(course__id=id)
             .filter(course__semester=current_semester)
         )
+
+        # students = TakenCourse.objects.filter(
+        #     course__allocated_course__lecturer__pk=request.user.id
+        # ).filter(course__id=id)
         context = {
             "title": "Submit Score",
             "courses": courses,
@@ -125,13 +135,16 @@ def add_score_for(request, id):
                 Course.objects.filter(level=student.student.level)
                 .filter(program__pk=student.student.program.id)
                 .filter(semester=current_semester)
-            )  # all courses of a specific level in current semester
+            )
+            # courses = (
+            #     Course.objects.filter(program__pk=student.student.program.id)
+            # )  # all courses of a specific level in current semester
             total_credit_in_semester = 0
             for i in courses:
                 if i == courses.count():
                     break
                 else:
-                    total_credit_in_semester += int(i.credit)
+                    total_credit_in_semester += int(i.credit)  # 0
             score = data.getlist(
                 ids[s]
             )  # get list of score for current student in the loop
@@ -214,6 +227,8 @@ def grade_result(request):
     courses = TakenCourse.objects.filter(student__student__pk=request.user.id).filter(
         course__level=student.level
     )
+    # courses = TakenCourse.objects.filter(student__student__pk=request.user.id)
+
     # total_credit_in_semester = 0
     results = Result.objects.filter(student__student__pk=request.user.id)
 
@@ -226,6 +241,11 @@ def grade_result(request):
 
     total_first_semester_credit = 0
     total_sec_semester_credit = 0
+    # for i in courses:
+    #     if i.course.semester == "First":
+    #         total_first_semester_credit += int(i.course.credit)
+    #     if i.course.semester == "Second":
+    #         total_sec_semester_credit += int(i.course.credit)
     for i in courses:
         if i.course.semester == "First":
             total_first_semester_credit += int(i.course.credit)
@@ -270,6 +290,7 @@ def assessment_result(request):
     courses = TakenCourse.objects.filter(
         student__student__pk=request.user.id, course__level=student.level
     )
+    # courses = TakenCourse.objects.filter(student__student__pk=request.user.id)
     result = Result.objects.filter(student__student__pk=request.user.id)
 
     context = {
@@ -370,6 +391,7 @@ def result_sheet_pdf_view(request, id):
     normal.leading = 15
     level = result.filter(course_id=id).first()
     title = "<b>Level: </b>" + str(level.course.level)
+    # title = "<b> Results </b>"
     title = Paragraph(title.upper(), normal)
     Story.append(title)
     Story.append(Spacer(1, 0.6 * inch))

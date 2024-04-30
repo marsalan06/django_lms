@@ -55,7 +55,8 @@
                         </thead>
                         <tbody>
                             {% for course in courses %}
-                            {% if course.semester == "First" %}
+                            {% if course.semester == "First" %} 
+                            <!--will remove the above if conditon-->
                             <tr>
                                 <th scope="row">
                                     <input name="{{ course.pk }}" value="{{ course.courseUnit }}" type="checkbox">
@@ -72,6 +73,7 @@
                                 <th>-</th>
                             </tr>
                             {% endif %}
+                            <!--will remove the above if conditon-->
                             {% empty %}
                             <tr>
                                 <td></td>
@@ -119,6 +121,7 @@
                         <tbody>
                             {% for course in courses %}
                             {% if course.semester == "Second" %}
+                            <!--will remove the above if conditon-->
                             <tr>
                                 <th scope="row">
                                     <input name="{{ course.pk }}" value="{{ course.courseUnit }}" type="checkbox">
@@ -135,6 +138,7 @@
                                 <th>-</th>
                             </tr>
                             {% endif %}
+                            <!--will remove the above if conditon-->
                             {% empty %}
                             <tr>
                                 <td></td>
