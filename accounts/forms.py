@@ -149,33 +149,20 @@ class StaffAddForm(UserCreationForm):
         user.phone = self.cleaned_data.get("phone")
         user.address = self.cleaned_data.get("address")
         user.email = self.cleaned_data.get("email")
+        user_org = "NO_ORG"
         if self.cleaned_data["organization"]:
             user.organization = self.cleaned_data["organization"]
+            user_org = user.organization
 
         # Generate a username
         registration_date = datetime.now().strftime("%Y")
         total_lecturers_count = User.objects.filter(is_lecturer=True).count()
-        generated_username = (
-            f"{settings.LECTURER_ID_PREFIX}-{registration_date}-{total_lecturers_count}"
-        )
-        # Generate a password
-        generated_password = User.objects.make_random_password()
+        generated_username = f"{settings.LECTURER_ID_PREFIX}-{user_org}-{registration_date}-{total_lecturers_count}"
 
         user.username = generated_username
-        user.set_password(generated_password)
 
         if commit:
             user.save()
-            print("-------user name-----: ", generated_username)
-            print("-------password------: ", generated_password)
-            # # Send email with the generated credentials
-            send_mail(
-                "Your Django LMS account credentials",
-                f"Your username: {generated_username}\nYour password: {generated_password}",
-                settings.EMAIL_FROM_ADDRESS,
-                [user.email],
-                fail_silently=False,
-            )
 
         return user
 
@@ -414,19 +401,17 @@ class StudentAddForm(UserCreationForm):
         user.phone = self.cleaned_data.get("phone")
         user.address = self.cleaned_data.get("address")
         user.email = self.cleaned_data.get("email")
+        user_org = "NO_ORG"
         if self.cleaned_data["organization"]:
             user.organization = self.cleaned_data["organization"]
+            user_org = user.organization
         # Generate a username based on first and last name and registration date
         registration_date = datetime.now().strftime("%Y")
         total_students_count = Student.objects.count()
-        generated_username = (
-            f"{settings.STUDENT_ID_PREFIX}-{registration_date}-{total_students_count}"
-        )
+        generated_username = f"{settings.STUDENT_ID_PREFIX}-{user_org}-{registration_date}-{total_students_count}"
         # Generate a password
-        generated_password = User.objects.make_random_password()
 
         user.username = generated_username
-        user.set_password(generated_password)
 
         if commit:
             user.save()
@@ -435,16 +420,6 @@ class StudentAddForm(UserCreationForm):
                 level=self.cleaned_data.get("level"),
                 program=self.cleaned_data.get("program"),
             )
-
-            # Send email with the generated credentials
-            send_mail(
-                "Your Django LMS account credentials",
-                f"Your ID: {generated_username}\nYour password: {generated_password}",
-                settings.EMAIL_FROM_ADDRESS,
-                [user.email],
-                fail_silently=False,
-            )
-        print("--------user----password----: ", user.username, generated_password)
 
         return user
 

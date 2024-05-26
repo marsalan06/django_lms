@@ -259,3 +259,4 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STUDENT_ID_PREFIX = config("STUDENT_ID_PREFIX", "ugr")
 LECTURER_ID_PREFIX = config("LECTURER_ID_PREFIX", "lec")
 FRONT_END_URL = config("FRONT_END_URL")
+X_FRAME_OPTIONS = "SAMEORIGIN"

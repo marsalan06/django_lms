@@ -32,6 +32,9 @@ class UserAdmin(admin.ModelAdmin):
         verbose_name = "User"
         verbose_name_plural = "Users"
 
+    def save_model(self, request, obj, form, change):
+        obj.save(from_admin=True)
+
 
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ("name", "type_of_org", "establishment_year", "status")

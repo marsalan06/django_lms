@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from datetime import datetime
 from django.db.models import Q
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
@@ -263,6 +264,24 @@ class User(AbstractUser):
         return reverse("profile_single", kwargs={"id": self.id})
 
     def save(self, *args, **kwargs):
+        from_admin = kwargs.pop("from_admin", False)
+        print(from_admin)
+
+        if not self.pk:
+            if from_admin:
+                registration_date = now().strftime("%Y")
+                user_org = self.organization.name if self.organization else "NO_ORG"
+                if self.is_lecturer:
+                    total_lecturers_count = User.objects.filter(
+                        is_lecturer=True
+                    ).count()
+                    generated_username = f"{settings.LECTURER_ID_PREFIX}-{user_org}-{registration_date}-{total_lecturers_count}"
+                if self.is_student:
+                    total_students_count = User.objects.filter(is_student=True).count()
+                    generated_username = f"{settings.STUDENT_ID_PREFIX}-{user_org}-{registration_date}-{total_students_count}"
+                self.username = generated_username
+            self.generated_password = User.objects.make_random_password()
+            self.set_password(self.generated_password)
         super().save(*args, **kwargs)
         try:
             img = Image.open(self.picture.path)
