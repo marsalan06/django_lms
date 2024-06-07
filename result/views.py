@@ -45,7 +45,6 @@ def add_score(request):
     current_semester = Semester.objects.filter(
         is_current_semester=True, session=current_session
     ).first()
-
     if not current_session or not current_semester:
         messages.error(request, "No active semester found.")
         return render(request, "result/add_score.html")
@@ -55,9 +54,15 @@ def add_score(request):
     # semester=current_semester)
     # under this
     # courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id)
+    print("-----current semmester----", current_semester)
+    print(
+        Course.objects.filter(allocated_course__lecturer__pk=request.user.id)[
+            1
+        ].__dict__
+    )
     courses = Course.objects.filter(
         allocated_course__lecturer__pk=request.user.id
-    ).filter(semester=current_semester)
+    ).filter(semester__contains=[current_semester])
 
     context = {
         "current_session": current_session,
@@ -78,13 +83,14 @@ def add_score_for(request, id):
     current_semester = get_object_or_404(
         Semester, is_current_semester=True, session=current_session
     )
+    current_semester_name = current_semester.semester
     if request.method == "GET":
         # courses = Course.objects.filter(
         #     allocated_course__lecturer__pk=request.user.id
         # )
         courses = Course.objects.filter(
             allocated_course__lecturer__pk=request.user.id
-        ).filter(semester=current_semester)
+        ).filter(semester__contains=[current_semester])
         course = Course.objects.get(pk=id)
         # myclass = Class.objects.get(lecturer__pk=request.user.id)
         # myclass = get_object_or_404(Class, lecturer__pk=request.user.id)
@@ -99,9 +105,13 @@ def add_score_for(request, id):
                 course__allocated_course__lecturer__pk=request.user.id
             )
             .filter(course__id=id)
-            .filter(course__semester=current_semester)
+            .filter(semesters__contains=[current_semester])
         )
-
+        for student in students:
+            student.current_semester_index = student.semesters.index(
+                current_semester_name
+            )
+        print("-----students00000---", students[0].__dict__)
         # students = TakenCourse.objects.filter(
         #     course__allocated_course__lecturer__pk=request.user.id
         # ).filter(course__id=id)
@@ -113,6 +123,7 @@ def add_score_for(request, id):
             "students": students,
             "current_session": current_session,
             "current_semester": current_semester,
+            "current_semester_name": current_semester_name,
         }
         return render(request, "result/add_score_for.html", context)
 
@@ -120,6 +131,7 @@ def add_score_for(request, id):
         ids = ()
         data = request.POST.copy()
         data.pop("csrfmiddlewaretoken", None)  # remove csrf_token
+        print("----data---key----", data.keys())
         for key in data.keys():
             ids = ids + (
                 str(key),
@@ -127,6 +139,9 @@ def add_score_for(request, id):
         for s in range(
             0, len(ids)
         ):  # iterate over the list of student ids gathered above
+            print("=======tete====")
+            print(ids)
+            print(ids[s])
             student = TakenCourse.objects.get(id=ids[s])
             # print(student)
             # print(student.student)
@@ -134,7 +149,7 @@ def add_score_for(request, id):
             courses = (
                 Course.objects.filter(level=student.student.level)
                 .filter(program__pk=student.student.program.id)
-                .filter(semester=current_semester)
+                .filter(semester__contains=[current_semester])
             )
             # courses = (
             #     Course.objects.filter(program__pk=student.student.program.id)
@@ -148,6 +163,7 @@ def add_score_for(request, id):
             score = data.getlist(
                 ids[s]
             )  # get list of score for current student in the loop
+            print("-----score-----: ", score)
             assignment = score[
                 0
             ]  # subscript the list to get the fisrt value > ca score
@@ -155,52 +171,54 @@ def add_score_for(request, id):
             quiz = score[2]
             attendance = score[3]
             final_exam = score[4]
+
             obj = TakenCourse.objects.get(pk=ids[s])  # get the current student data
-            obj.assignment = assignment  # set current student assignment score
-            obj.mid_exam = mid_exam  # set current student mid_exam score
-            obj.quiz = quiz  # set current student quiz score
-            obj.attendance = attendance  # set current student attendance score
-            obj.final_exam = final_exam  # set current student final_exam score
 
-            obj.total = obj.get_total(
-                assignment=assignment,
-                mid_exam=mid_exam,
-                quiz=quiz,
-                attendance=attendance,
-                final_exam=final_exam,
+            print("okokoo", current_semester)
+            semester_index = obj.semesters.index(current_semester_name)
+            print("0------objcte---deict----", obj.__dict__)
+            print("----semester---index-----", semester_index)
+            obj.assignment[semester_index] = assignment
+            obj.mid_exam[semester_index] = mid_exam
+            obj.quiz[semester_index] = quiz
+            obj.attendance[semester_index] = attendance
+            obj.final_exam[semester_index] = final_exam
+
+            obj.total[semester_index] = obj.get_total(semester_index)
+            obj.grade[semester_index] = obj.get_grade(total=obj.total[semester_index])
+            obj.point[semester_index] = obj.get_point(grade=obj.grade[semester_index])
+            obj.comment[semester_index] = obj.get_comment(
+                grade=obj.grade[semester_index]
             )
-            obj.grade = obj.get_grade(total=obj.total)
 
-            # obj.total = obj.get_total(assignment, mid_exam, quiz, attendance, final_exam)
-            # obj.grade = obj.get_grade(assignment, mid_exam, quiz, attendance, final_exam)
-
-            obj.point = obj.get_point(grade=obj.grade)
-
-            obj.comment = obj.get_comment(grade=obj.grade)
-            # obj.carry_over(obj.grade)
-            # obj.is_repeating()
             obj.save()
-            gpa = obj.calculate_gpa(total_credit_in_semester)
+
+            gpa = obj.calculate_gpa(total_credit_in_semester, semester_index)
+            cgpa = obj.calculate_cgpa()
+
+            gpa = obj.calculate_gpa(total_credit_in_semester, semester_index)
             cgpa = obj.calculate_cgpa()
 
             try:
                 a = Result.objects.get(
                     student=student.student,
-                    semester=current_semester,
                     session=current_session,
                     level=student.student.level,
                 )
-                a.gpa = gpa
+                a.gpa[semester_index] = gpa
                 a.cgpa = cgpa
                 a.save()
-            except:
-                Result.objects.get_or_create(
+            except Result.DoesNotExist:
+                result = Result.objects.create(
                     student=student.student,
-                    gpa=gpa,
-                    semester=current_semester,
+                    gpa=[None, None, None],  # Initialize with three None values
+                    cgpa=cgpa,
+                    semesters=[current_semester_name],
                     session=current_session,
                     level=student.student.level,
                 )
+                result.gpa[semester_index] = gpa
+                result.save()
 
             # try:
             #     a = Result.objects.get(student=student.student,
@@ -224,21 +242,24 @@ def add_score_for(request, id):
 @student_required
 def grade_result(request):
     student = Student.objects.get(student__pk=request.user.id)
+    print("----student----", student)
     courses = TakenCourse.objects.filter(student__student__pk=request.user.id).filter(
         course__level=student.level
     )
+    print("-----courses----", courses)
     # courses = TakenCourse.objects.filter(student__student__pk=request.user.id)
 
     # total_credit_in_semester = 0
     results = Result.objects.filter(student__student__pk=request.user.id)
-
+    print("----results=====", results)
     result_set = set()
 
     for result in results:
+        print("----ind result----", result)
         result_set.add(result.session)
 
     sorted_result = sorted(result_set)
-
+    print("-----sorted result=-----", sorted_result)
     total_first_semester_credit = 0
     total_sec_semester_credit = 0
     # for i in courses:
@@ -247,9 +268,15 @@ def grade_result(request):
     #     if i.course.semester == "Second":
     #         total_sec_semester_credit += int(i.course.credit)
     for i in courses:
-        if i.course.semester == "First":
+        print("------i.===-=-===:", i.course.semester)
+        if "First" in i.course.semester:
+            print("-----first semester credit=----=-", i.course.credit)
             total_first_semester_credit += int(i.course.credit)
-        if i.course.semester == "Second":
+        if "Second" in i.course.semester:
+            print("-----Second semester credit=----=-", i.course.credit)
+            total_sec_semester_credit += int(i.course.credit)
+        if "Third" in i.course.semester:
+            print("-----Third semester credit=----=-", i.course.credit)
             total_sec_semester_credit += int(i.course.credit)
 
     previousCGPA = 0
@@ -279,7 +306,9 @@ def grade_result(request):
         + total_sec_semester_credit,
         "previousCGPA": previousCGPA,
     }
-
+    print("-----context000----: ", context["results"])
+    for i in context["results"]:
+        print(i.__dict__)
     return render(request, "result/grade_results.html", context)
 
 
@@ -287,12 +316,14 @@ def grade_result(request):
 @student_required
 def assessment_result(request):
     student = Student.objects.get(student__pk=request.user.id)
+    print("--------student----", student)
     courses = TakenCourse.objects.filter(
         student__student__pk=request.user.id, course__level=student.level
     )
+    print("-----courses----", courses)
     # courses = TakenCourse.objects.filter(student__student__pk=request.user.id)
     result = Result.objects.filter(student__student__pk=request.user.id)
-
+    print("-----results----", result)
     context = {
         "courses": courses,
         "result": result,

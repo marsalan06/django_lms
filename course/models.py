@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import FileExtensionValidator
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.db.models import Q
@@ -118,12 +119,18 @@ class Course(models.Model):
     slug = models.SlugField(blank=True, unique=True)
     title = models.CharField(max_length=200, null=True)
     code = models.CharField(max_length=200, null=True)
-    # credit = models.IntegerField(null=True, default=0)
+    credit = models.IntegerField(null=True, default=4)
     summary = models.TextField(max_length=200, blank=True, null=True)
     program = models.ForeignKey(Program, on_delete=models.CASCADE)
-    # level = models.CharField(max_length=25, choices=LEVEL, null=True)
+    level = models.CharField(max_length=25, choices=LEVEL, null=True)
     # year = models.IntegerField(choices=YEARS, default=0)
-    # semester = models.CharField(choices=SEMESTER, max_length=200)
+    semester = ArrayField(
+        models.CharField(max_length=10, choices=SEMESTER),
+        blank=True,
+        default=["First", "Second", "Third"],
+        help_text="List of semesters",
+    )
+    max_score = models.FloatField(default=100.00, null=True)
     # is_elective = models.BooleanField(default=False, blank=True, null=True)
 
     objects = CourseManager()
@@ -134,13 +141,15 @@ class Course(models.Model):
     def get_absolute_url(self):
         return reverse("course_detail", kwargs={"slug": self.slug})
 
+    def is_offered_in_semester(self, semester):
+        return semester in self.semesters
+
     @property
     def is_current_semester(self):
         from core.models import Semester
 
         current_semester = Semester.objects.get(is_current_semester=True)
-
-        if self.semester == current_semester.semester:
+        if current_semester.semester in self.semester:
             return True
         else:
             return False

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }} | Learning management system{% endblock title %}
 {% load static %}
-
+{% load list_index %}
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
@@ -64,31 +64,31 @@
                 {% for student in students %}
                 <tr>
                     <td>{{ forloop.counter }}</td>
-                    <td><a href="{{ student.student.student.get_absolute_url }}">{{ student.student.student.username }}</a></td>
-                    <td>
-                        <input id="assignment" type="number" name="{{ student.id }}" value="{{ student.assignment }}" width="20px">
-                    </td>
-                    <td>
-                        <input id="mid_exam" type="number" name="{{ student.id }}" value="{{ student.mid_exam }}">
-                    </td>
-                    <td>
-                        <input id="quiz" type="number" name="{{ student.id }}" value="{{ student.quiz }}">
-                    </td>
-                    <td>
-                        <input id="attendance" type="number" name="{{ student.id }}" value="{{ student.attendance }}">
-                    </td>
-                    <td>
-                        <input id="final_exam" type="number" name="{{ student.id }}" value="{{ student.final_exam }}">
-                    </td>
-                    <td>{{ student.total }}</td>
-
-                    <td>{{ student.point }}</td>
-                    <td class="{% if student.grade == 'F' %}text-danger{% else %}text-success{% endif %}">{{ student.grade }}</td>
-                    {% if student.comment == 'PASS' %}
-                    <td class="text-success">&check; {{ student.comment }}</td>
-                    {% elif student.comment == 'FAIL' %}
-                    <td class="text-danger">&xotime; {{ student.comment }}</td>
-                    {% else %}<td></td>
+        <td><a href="{{ student.student.student.get_absolute_url }}">{{ student.student.student.username }}</a></td>
+        <td>
+            <input id="assignment" type="number" name="{{ student.id }}" value="{{ student.assignment|default_if_none:0|get_item:student.current_semester_index }}" width="20px">
+        </td>
+        <td>
+            <input id="mid_exam" type="number" name="{{ student.id }}" value="{{ student.mid_exam|default_if_none:0|get_item:student.current_semester_index }}">
+        </td>
+        <td>
+            <input id="quiz" type="number" name="{{ student.id }}" value="{{ student.quiz|default_if_none:0|get_item:student.current_semester_index }}">
+        </td>
+        <td>
+            <input id="attendance" type="number" name="{{ student.id }}" value="{{ student.attendance|default_if_none:0|get_item:student.current_semester_index }}">
+        </td>
+        <td>
+            <input id="final_exam" type="number" name="{{ student.id }}" value="{{ student.final_exam|default_if_none:0|get_item:student.current_semester_index }}">
+        </td>
+        <td>{{ student.total|default_if_none:0|get_item:student.current_semester_index }}</td>
+        <td>{{ student.point|default_if_none:0|get_item:student.current_semester_index }}</td>
+        <td class="{% if student.grade|get_item:student.current_semester_index == 'F' %}text-danger{% else %}text-success{% endif %}">{{ student.grade|default_if_none:''|get_item:student.current_semester_index }}</td>
+        {% if student.comment|get_item:student.current_semester_index == 'PASS' %}
+            <td class="text-success">&check; {{ student.comment|get_item:student.current_semester_index }}</td>
+        {% elif student.comment|get_item:student.current_semester_index == 'FAIL' %}
+            <td class="text-danger">&xotime; {{ student.comment|get_item:student.current_semester_index }}</td>
+        {% else %}
+            <td></td>
                     {% endif %}
                 </tr>
 

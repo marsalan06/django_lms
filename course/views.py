@@ -171,12 +171,15 @@ def course_add(request, pk):
         course_name = request.POST.get("title")
         course_code = request.POST.get("code")
         if form.is_valid():
-            form.save()
+            course = form.save(commit=False)
+            course.semester = form.cleaned_data["semester"]
+            course.save()
             messages.success(
                 request, (course_name + "(" + course_code + ")" + " has been created.")
             )
             return redirect("program_detail", pk=request.POST.get("program"))
         else:
+            print("------form ---errors---: ", form.errors)
             messages.error(request, "Correct the error(s) below.")
     else:
         form = CourseAddForm(
@@ -468,8 +471,25 @@ def course_registration(request):
         for key in data.keys():
             ids = ids + (str(key),)
         for s in range(0, len(ids)):
-            course = Course.objects.get(pk=ids[s])
-            obj = TakenCourse.objects.create(student=student, course=course)
+            course = get_object_or_404(Course, pk=ids[s])
+            current_session = Session.objects.filter(is_current_session=True).first()
+            default_decimal_list = [0.0, 0.0, 0.0]
+            default_grade_list = ["F", "F", "F"]
+            default_comment_list = ["FAIL", "FAIL", "FAIL"]
+            obj = TakenCourse.objects.create(
+                student=student,
+                course=course,
+                session=current_session,
+                assignment=default_decimal_list,
+                mid_exam=default_decimal_list,
+                quiz=default_decimal_list,
+                attendance=default_decimal_list,
+                final_exam=default_decimal_list,
+                total=default_decimal_list,
+                grade=default_grade_list,
+                point=default_decimal_list,
+                comment=default_comment_list,
+            )
             obj.save()
         messages.success(request, "Courses registered successfully!")
         return redirect("course_registration")
@@ -489,11 +509,20 @@ def course_registration(request):
         for i in taken_courses:
             t += (i.course.pk,)
 
+        print("popopop-----: ", student.program.id, student.level, current_semester)
+        print(
+            "-----ooo-----: ",
+            Course.objects.filter(
+                program__pk=student.program.id,
+                level=student.level,
+                semester__contains=[current_semester],
+            ),
+        )
         courses = (
             Course.objects.filter(
-                program__pk=student.program.id
-                # level=student.level,
-                # semester=current_semester,
+                program__pk=student.program.id,
+                level=student.level,
+                semester__contains=[current_semester],
             )
             .exclude(id__in=t)
             .order_by("slug")

@@ -55,7 +55,7 @@
                         </thead>
                         <tbody>
                             {% for course in courses %}
-                            {% if course.semester == "First" %} 
+                            {% if "First" in course.semester %}
                             <!--will remove the above if conditon-->
                             <tr>
                                 <th scope="row">
@@ -120,7 +120,81 @@
                         </thead>
                         <tbody>
                             {% for course in courses %}
-                            {% if course.semester == "Second" %}
+                            {% if "Second" in course.semester %}
+                            <!--will remove the above if conditon-->
+                            <tr>
+                                <th scope="row">
+                                    <input name="{{ course.pk }}" value="{{ course.courseUnit }}" type="checkbox">
+                                </th>
+                                <td>{{ course.code }}</td>
+                                <td>{{ course.title }}</td>
+                                <td>{{ course.credit }}</td>
+                                <td>{{ course.year }}</td>
+                                {% if course.is_elective %}
+                                <td>Elective</td>
+                                {% else %}
+                                <td>Core</td>
+                                {% endif %}
+                                <th>-</th>
+                            </tr>
+                            {% endif %}
+                            <!--will remove the above if conditon-->
+                            {% empty %}
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>
+                                    <span class="text-danger">
+                                        No Course.
+                                    </span>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            {% endfor %}
+                            <tr>
+                                <th></th>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td><b>Second semester credit(s):</b> {{ total_sec_semester_credit }} </td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"></th>
+                                <td><b>Registerd course credit(s): <a id="units">{{ total_registered_credit }}</a></b>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td><b>Total credit(s):</b> {{ total_sec_semester_credit|add:total_first_semester_credit }} </td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="table-responsive p-0 px-2 mt-2">
+                <div class="table-title"><u>Third Semester:</u></div>
+                <div class="table-shadow">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mark</th>
+                                <th>Course Code</th>
+                                <th>Course Title</th>
+                                <th>Cr.Hr(s)</th>
+                                <th>Year</th>
+                                <th>Classification</th>
+                                <th>Elective Group</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                            {% if "Third" in course.semester %}
                             <!--will remove the above if conditon-->
                             <tr>
                                 <th scope="row">

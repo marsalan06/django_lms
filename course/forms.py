@@ -2,7 +2,7 @@ from django import forms
 
 from accounts.models import User, Organization
 
-from .models import Course, CourseAllocation, Program, Upload, UploadVideo
+from .models import Course, CourseAllocation, Program, Upload, UploadVideo, SEMESTER
 
 
 class ProgramForm(forms.ModelForm):
@@ -44,16 +44,28 @@ class CourseAddForm(forms.ModelForm):
         # self.fields['courseUnit'].widget.attrs.update({'class': 'form-control'})
         # self.fields["credit"].widget.attrs.update({"class": "form-control"})
         self.fields["summary"].widget.attrs.update({"class": "form-control"})
+        self.fields["max_score"].widget.attrs.update({"class": "form-control"})
         self.fields["program"].widget.attrs.update({"class": "form-control"})
         # self.fields["level"].widget.attrs.update({"class": "form-control"})
         # self.fields["year"].widget.attrs.update({"class": "form-control"})
-        # self.fields["semester"].widget.attrs.update({"class": "form-control"})
         # if instance is not None:
         #     self.fields["program"].queryset = Program.objects.filter(
         #         pk=instance.program.pk
         #     )
 
         self.fields["program"].queryset = Program.objects.filter(pk=program_pk)
+        self.fields["semester"] = forms.MultipleChoiceField(
+            choices=SEMESTER,
+            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            help_text="Select one or more semesters",
+        )
+
+    def clean_semester(self):
+        semester = self.cleaned_data.get("semester")
+        if not semester:
+            return ["First", "Second", "Third"]
+        return semester
         # if user and hasattr(user, "organization"):
         #     user_organization = user.organization
         #     # Filter the program queryset based on the user's organization

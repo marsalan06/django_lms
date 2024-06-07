@@ -90,6 +90,17 @@ class Semester(models.Model):
     )
     next_semester_begins = models.DateField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        # If this semester is set to current, update all others in the same session
+        if self.is_current_semester:
+            # Update other semesters in the same session to not be current
+            Semester.objects.filter(
+                session=self.session, is_current_semester=True
+            ).update(is_current_semester=False)
+
+        # Call the original save method
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.semester
 

@@ -33,6 +33,7 @@
 	<tr>
 	  <th>{% trans "Question" %}</th>
 	  <th>{% trans "User answer" %}</th>
+	  <th>{% trans "Sample answer" %}</th>
 	  <th></th>
 	  <th></th>
 	</tr>
@@ -48,7 +49,8 @@
         <div style="max-width: 100px;"><img src="{{ question.figure.url }}" alt="{{ question.figure }}" width="100px"/></div>
         {% endif %}
       </td>
-	  <td>{{ question }}</td>
+	  <td>{{question.user_answer}}</td>
+	  <td>{{question.sample_answer}}</td>
 	  <td>
 		{% if question.id in sitting.get_incorrect_questions %}
 		  <p>{% trans "incorrect" %}</p>

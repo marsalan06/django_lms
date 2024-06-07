@@ -134,8 +134,9 @@ def profile_single(request, id):
 
     user = User.objects.get(pk=id)
     if user.is_lecturer:
+        print("-----current semester----", current_semester)
         courses = Course.objects.filter(allocated_course__lecturer__pk=id).filter(
-            semester=current_semester
+            semester__contains=[current_semester]
         )
         context = {
             "title": user.get_full_name,

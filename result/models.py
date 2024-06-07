@@ -1,8 +1,10 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.postgres.fields import ArrayField
+
 
 from accounts.models import Student
-from core.models import Semester
+from core.models import Semester, Session
 from course.models import Course
 
 YEARS = (
@@ -89,15 +91,60 @@ class TakenCourse(models.Model):
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name="taken_courses"
     )
-    assignment = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    mid_exam = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    quiz = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    attendance = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    final_exam = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    total = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    grade = models.CharField(choices=GRADE, max_length=2, blank=True)
-    point = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
-    comment = models.CharField(choices=COMMENT, max_length=200, blank=True)
+    session = models.ForeignKey(
+        Session, on_delete=models.CASCADE, blank=True, null=True
+    )
+    semesters = ArrayField(
+        models.CharField(max_length=10, choices=SEMESTER),
+        blank=True,
+        default=["First", "Second", "Third"],
+        help_text="List of semesters",
+    )
+    assignment = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    mid_exam = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    quiz = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    attendance = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    final_exam = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    total = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    grade = ArrayField(
+        models.CharField(choices=GRADE, max_length=2, blank=True),
+        default=list,
+        blank=True,
+    )
+    point = ArrayField(
+        models.DecimalField(max_digits=5, decimal_places=2, default=0.0),
+        default=list,
+        blank=True,
+    )
+    comment = ArrayField(
+        models.CharField(choices=COMMENT, max_length=200, blank=True),
+        default=list,
+        blank=True,
+    )
 
     def get_absolute_url(self):
         return reverse("course_detail", kwargs={"slug": self.course.slug})
@@ -105,21 +152,23 @@ class TakenCourse(models.Model):
     def __str__(self):
         return "{0} ({1})".format(self.course.title, self.course.code)
 
-    # @staticmethod
-    def get_total(self, assignment, mid_exam, quiz, attendance, final_exam):
-        return (
-            float(assignment)
-            + float(mid_exam)
-            + float(quiz)
-            + float(attendance)
-            + float(final_exam)
-        )
+    def get_total(self, semester_index):
+        try:
+            current_total_score = (
+                float(self.assignment[semester_index])
+                + float(self.mid_exam[semester_index])
+                + float(self.quiz[semester_index])
+                + float(self.attendance[semester_index])
+                + float(self.final_exam[semester_index])
+            )
+            if current_total_score > self.course.max_score:
+                return float(self.course.max_score)
+            else:
+                return current_total_score
+        except IndexError:
+            return 0.0
 
-    # @staticmethod
     def get_grade(self, total):
-        # total = float(assignment) + float(mid_exam) + float(quiz) + float(attendance) + float(final_exam)
-        # total = self.get_total(assignment=assignment, mid_exam=mid_exam, quiz=quiz, attendance=attendance, final_exam=final_exam)
-        # total = total
         if total >= 90:
             grade = A_PLUS
         elif total >= 85:
@@ -146,150 +195,111 @@ class TakenCourse(models.Model):
             grade = NG
         return grade
 
-    # @staticmethod
     def get_comment(self, grade):
         if grade == F or grade == NG:
             comment = FAIL
-        # elif grade == NG:
-        #     comment = FAIL
         else:
             comment = PASS
         return comment
 
     def get_point(self, grade):
-        p = 0
-        # point = 0
-        # for i in student:
-        credit = self.course.credit  # 1
-        if self.grade == A_PLUS:
+        credit = self.course.credit
+        if grade == A_PLUS:
             point = 4
-        elif self.grade == A:
+        elif grade == A:
             point = 4
-        elif self.grade == A_MINUS:
+        elif grade == A_MINUS:
             point = 3.75
-        elif self.grade == B_PLUS:
+        elif grade == B_PLUS:
             point = 3.5
-        elif self.grade == B:
+        elif grade == B:
             point = 3
-        elif self.grade == B_MINUS:
+        elif grade == B_MINUS:
             point = 2.75
-        elif self.grade == C_PLUS:
+        elif grade == C_PLUS:
             point = 2.5
-        elif self.grade == C:
+        elif grade == C:
             point = 2
-        elif self.grade == C_MINUS:
+        elif grade == C_MINUS:
             point = 1.75
-        elif self.grade == D:
+        elif grade == D:
             point = 1
         else:
             point = 0
-        p += int(credit) * point
-        return p
+        return int(credit) * point
 
-    def calculate_gpa(self, total_credit_in_semester):
+    def calculate_gpa(self, total_credit_in_semester, semester_index):
         current_semester = Semester.objects.get(is_current_semester=True)
-        student = TakenCourse.objects.filter(
+        print("-----current0000sem----", current_semester)
+        student_courses = TakenCourse.objects.filter(
             student=self.student,
             course__level=self.student.level,
-            course__semester=current_semester,
+            session=self.session,
+            semesters__contains=[current_semester.semester],
         )
-        # student = TakenCourse.objects.filter(
-        #     student=self.student
-        #     # course__level=self.student.level,
-        #     # course__semester=current_semester,
-        # )
-        p = 0
-        point = 0
-        for i in student:
-            credit = i.course.credit  # 1
-            if i.grade == A_PLUS:
-                point = 4
-            elif i.grade == A:
-                point = 4
-            elif i.grade == A_MINUS:
-                point = 3.75
-            elif i.grade == B_PLUS:
-                point = 3.5
-            elif i.grade == B:
-                point = 3
-            elif i.grade == B_MINUS:
-                point = 2.75
-            elif i.grade == C_PLUS:
-                point = 2.5
-            elif i.grade == C:
-                point = 2
-            elif i.grade == C_MINUS:
-                point = 1.75
-            elif i.grade == D:
-                point = 1
-            else:
-                point = 0
-            p += int(credit) * point
+        print("-----courses-----", student_courses)
+        total_points = 0
+        for course in student_courses:
+            print("------cours-----", course)
+            total = course.get_total(semester_index)
+            print("--------total-----", total)
+            grade = course.get_grade(total)
+            print("------grade----", grade)
+            points = course.get_point(grade)
+            print("------points-----", points)
+            total_points += points
+            print("------total points---", total_points)
         try:
-            gpa = p / total_credit_in_semester
+            print("------total credit in sem----", total_credit_in_semester)
+            gpa = total_points / total_credit_in_semester
+            print("-----gpa----", gpa)
             return round(gpa, 2)
         except ZeroDivisionError:
             return 0
 
     def calculate_cgpa(self):
-        current_semester = Semester.objects.get(is_current_semester=True)
-        previousResult = Result.objects.filter(
-            student__id=self.student.id, level__lt=self.student.level
+        print("----cgpa code-------")
+        previous_results = Result.objects.filter(
+            student=self.student, level__lte=self.student.level
         )
-        previous_cgpa = 0
-        for i in previousResult:
-            if i.cgpa is not None:
-                previous_cgpa += i.cgpa
-        cgpa = 0
-        if str(current_semester) == SECOND:
-            first_sem_gpa = 0.0
-            sec_sem_gpa = 0.0
-            try:
-                first_sem_result = Result.objects.get(
-                    student=self.student.id, semester=FIRST, level=self.student.level
-                )
-                first_sem_gpa += first_sem_result.gpa
-            except:
-                first_sem_gpa = 0
+        print("-----prev result====", previous_results)
+        total_gpa = 0
+        count = 0
 
-            try:
-                sec_sem_result = Result.objects.get(
-                    student=self.student.id, semester=SECOND, level=self.student.level
-                )
-                sec_sem_gpa += sec_sem_result.gpa
-            except:
-                sec_sem_gpa = 0
+        for result in previous_results:
+            print("-----result-----", result)
+            for gpa in result.gpa:
+                print("----gpa=----", gpa)
+                if gpa is not None:
+                    total_gpa += gpa
+                    print("------total gpa---", total_gpa)
+                    count += 1
 
-            taken_courses = TakenCourse.objects.filter(
-                student=self.student, student__level=self.student.level
-            )
-            taken_course_credits = 0
-            taken_course_points = 0
-            for i in taken_courses:
-                taken_course_points += float(i.point)
-            for i in taken_courses:
-                taken_course_credits += int(i.course.credit)
-            # cgpa = (first_sem_gpa + sec_sem_gpa) / 2
-
-            print("taken_course_points = ", taken_course_points)
-            print("taken_course_credits = ", taken_course_credits)
-            print("first_sem_gpa = ", first_sem_gpa)
-            print("sec_sem_gpa = ", sec_sem_gpa)
-            print("cgpa = ", round(taken_course_points / taken_course_credits, 2))
-
-            try:
-                cgpa = taken_course_points / taken_course_credits
-                return round(cgpa, 2)
-            except ZeroDivisionError:
-                return 0
-
-            # return round(cgpa, 2)
+        try:
+            cgpa = round(total_gpa / count, 2)
+            print("-----cgpa----", cgpa)
+            return cgpa
+        except ZeroDivisionError:
+            return 0
 
 
 class Result(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    gpa = models.FloatField(null=True)
+    gpa = ArrayField(
+        models.FloatField(null=True),
+        size=3,  # Assuming three semesters
+        default=list,
+        blank=True,
+        help_text="List of GPAs for each semester",
+    )
     cgpa = models.FloatField(null=True)
-    semester = models.CharField(max_length=100, choices=SEMESTER)
-    session = models.CharField(max_length=100, blank=True, null=True)
+    session = models.ForeignKey(
+        Session, on_delete=models.CASCADE, blank=True, null=True
+    )
+    semesters = ArrayField(
+        models.CharField(max_length=10, choices=SEMESTER),
+        blank=True,
+        default=["First", "Second", "Third"],
+        help_text="List of semesters",
+    )
     level = models.CharField(max_length=25, choices=LEVEL, null=True)

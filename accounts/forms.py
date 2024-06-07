@@ -313,14 +313,14 @@ class StudentAddForm(UserCreationForm):
         ),
     )
 
-    # level = forms.CharField(
-    #     widget=forms.Select(
-    #         choices=LEVEL,
-    #         attrs={
-    #             "class": "browser-default custom-select form-control",
-    #         },
-    #     ),
-    # )
+    level = forms.CharField(
+        widget=forms.Select(
+            choices=LEVEL,
+            attrs={
+                "class": "browser-default custom-select form-control",
+            },
+        ),
+    )
 
     program = forms.ModelChoiceField(
         queryset=Program.objects.all(),
