@@ -111,7 +111,7 @@ def add_score_for(request, id):
             student.current_semester_index = student.semesters.index(
                 current_semester_name
             )
-        print("-----students00000---", students[0].__dict__)
+        # print("-----students00000---", students[0].__dict__)
         # students = TakenCourse.objects.filter(
         #     course__allocated_course__lecturer__pk=request.user.id
         # ).filter(course__id=id)
@@ -194,10 +194,7 @@ def add_score_for(request, id):
             obj.save()
 
             gpa = obj.calculate_gpa(total_credit_in_semester, semester_index)
-            cgpa = obj.calculate_cgpa()
-
-            gpa = obj.calculate_gpa(total_credit_in_semester, semester_index)
-            cgpa = obj.calculate_cgpa()
+            print("-----gpa result-------", gpa)
 
             try:
                 a = Result.objects.get(
@@ -205,20 +202,30 @@ def add_score_for(request, id):
                     session=current_session,
                     level=student.student.level,
                 )
+                a.semesters[semester_index] = current_semester_name
                 a.gpa[semester_index] = gpa
+                # a.cgpa = cgpa
+                a.save()
+                cgpa = obj.calculate_cgpa()
+                print("------cgpa result----", cgpa)
                 a.cgpa = cgpa
                 a.save()
+                print("----final ----", a.__dict__)
             except Result.DoesNotExist:
                 result = Result.objects.create(
                     student=student.student,
                     gpa=[None, None, None],  # Initialize with three None values
-                    cgpa=cgpa,
-                    semesters=[current_semester_name],
+                    semesters=[None, None, None],
                     session=current_session,
                     level=student.student.level,
                 )
                 result.gpa[semester_index] = gpa
                 result.save()
+                cgpa = obj.calculate_cgpa()
+                print("------cgpa result----", cgpa)
+                result.cgpa = cgpa
+                result.save()
+                print("----final----", result.__dict__)
 
             # try:
             #     a = Result.objects.get(student=student.student,
@@ -295,6 +302,15 @@ def grade_result(request):
         except:
             previousCGPA = 0
 
+    current_session = Session.objects.get(is_current_session=True)
+    current_semester = get_object_or_404(
+        Semester, is_current_semester=True, session=current_session
+    )
+    current_semester_name = current_semester.semester
+
+    for course in courses:
+        course.current_semester_name = current_semester_name
+
     context = {
         "courses": courses,
         "results": results,
@@ -306,9 +322,7 @@ def grade_result(request):
         + total_sec_semester_credit,
         "previousCGPA": previousCGPA,
     }
-    print("-----context000----: ", context["results"])
-    for i in context["results"]:
-        print(i.__dict__)
+
     return render(request, "result/grade_results.html", context)
 
 
@@ -320,10 +334,8 @@ def assessment_result(request):
     courses = TakenCourse.objects.filter(
         student__student__pk=request.user.id, course__level=student.level
     )
-    print("-----courses----", courses)
     # courses = TakenCourse.objects.filter(student__student__pk=request.user.id)
     result = Result.objects.filter(student__student__pk=request.user.id)
-    print("-----results----", result)
     context = {
         "courses": courses,
         "result": result,

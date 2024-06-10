@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }} | Learning management system{% endblock title %}
-
+{% load list_index %}
 {% block content %}
 
 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
@@ -50,13 +50,12 @@
         <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
         <td>{{ course.course.code }}</td>
         <td>{{ course.course.credit }}</td>
+        <td class="{% if course.grade.0 == 'F' %}danger{% else %}success{% endif %}">{{ course.grade.0 }}</td>
+        <td>{{ course.point.0 }}</td>
 
-        <td class="{% if course.grade == 'F' %}danger{% else %}success{% endif %}">{{ course.grade }}</td>
-        <td>{{ course.point }}</td>
-
-        {% if course.comment == 'PASS' %}
+        {% if course.comment.0 == 'PASS' %}
           <td class="success"><i class="fas fa-check-circle"></i> PASS</td>
-        {% elif course.comment == 'FAIL' %}
+        {% elif course.comment.0 == 'FAIL' %}
           <td class="danger"><i class="fas fa-exclamation-circle"></i> FAIL</td>
         {% else %}
           <td></td>
@@ -116,12 +115,12 @@
         <td>{{ course.course.code }}</td>
         <td>{{ course.course.credit }}</td>
         
-        <td class="{% if course.grade == 'F' %}danger{% else %}success{% endif %}">{{ course.grade }}</td>
-        <td>{{ course.point }}</td>
+        <td class="{% if course.grade.1 == 'F' %}danger{% else %}success{% endif %}">{{ course.grade.1 }}</td>
+        <td>{{ course.point.1 }}</td>
         
-        {% if course.comment == 'PASS' %}
+        {% if course.comment.1 == 'PASS' %}
           <td class="success"><i class="fas fa-check-circle"></i> PASS</td>
-        {% elif course.comment == 'FAIL' %}
+        {% elif course.comment.1 == 'FAIL' %}
           <td class="danger"><i class="fas fa-exclamation-circle"></i> FAIL</td>
         {% else %}
           <td></td>
@@ -190,12 +189,12 @@
         <td>{{ course.course.code }}</td>
         <td>{{ course.course.credit }}</td>
         
-        <td class="{% if course.grade == 'F' %}danger{% else %}success{% endif %}">{{ course.grade }}</td>
-        <td>{{ course.point }}</td>
+        <td class="{% if course.grade.2 == 'F' %}danger{% else %}success{% endif %}">{{ course.grade.2 }}</td>
+        <td>{{ course.point.2 }}</td>
         
-        {% if course.comment == 'PASS' %}
+        {% if course.comment.2 == 'PASS' %}
           <td class="success"><i class="fas fa-check-circle"></i> PASS</td>
-        {% elif course.comment == 'FAIL' %}
+        {% elif course.comment.2 == 'FAIL' %}
           <td class="danger"><i class="fas fa-exclamation-circle"></i> FAIL</td>
         {% else %}
           <td></td>
@@ -263,7 +262,7 @@
   <tr>
     <th></th>
     <th></th>
-    <th><label>Previous CGPA:</label> {{ previousCGPA }}</th>
+    <!-- <th><label>Previous CGPA:</label> {{ previousCGPA }}</th> -->
   </tr>
 </tbody>
 <br>

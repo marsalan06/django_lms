@@ -45,22 +45,22 @@
       </tr>
     </thead>
     {% for course in courses %}
-    {% if course.course.semester == "First" %}
+    {% if "First" in course.course.semester %}
     <tbody>
       <tr class="{% if forloop.counter|divisibleby:2 %}bg-gray{% endif %}">
         <th scope="row">{{ forloop.counter }}</th>
         <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
         <td>{{ course.course.code }}</td>
         <td>{{ course.course.credit }}</td>
-        <td>{{ course.assignment }}</td>
-        <td>{{ course.mid_exam }}</td>
-        <td>{{ course.quiz }}</td>
-        <td>{{ course.attendance }}</td>
-        <td>{{ course.final_exam }}</td>
-        {% if course.total >= 45 %}
-        <td class="success"><i class="fas fa-check-circle"></i> {{ course.total }}</td>
+        <td>{{ course.assignment.0 }}</td>
+        <td>{{ course.mid_exam.0 }}</td>
+        <td>{{ course.quiz.0 }}</td>
+        <td>{{ course.attendance.0 }}</td>
+        <td>{{ course.final_exam.0 }}</td>
+        {% if course.total.0 >= 45 %}
+        <td class="success"><i class="fas fa-check-circle"></i> {{ course.total.0 }}</td>
         {% else %}
-        <td class="danger"><i class="fas fa-exclamation-circle"></i> {{ course.total }}</td>
+        <td class="danger"><i class="fas fa-exclamation-circle"></i> {{ course.total.0 }}</td>
         {% endif %}
       </tr>
     </tbody>
@@ -87,28 +87,69 @@
       </tr>
     </thead>
     {% for course in courses %}
-    {% if course.course.semester == "Second" %}
+    {% if "Second" in course.course.semester %}
     <tbody>
       <tr>
         <th scope="row">{{ forloop.counter }}</th>
         <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
         <td>{{ course.course.code }}</td>
         <td>{{ course.course.credit }}</td>
-        <td>{{ course.assignment }}</td>
-        <td>{{ course.mid_exam }}</td>
-        <td>{{ course.quiz }}</td>
-        <td>{{ course.attendance }}</td>
-        <td>{{ course.final_exam }}</td>
-        {% if course.total >= 45 %}
-        <td class="success"><i class="fas fa-check-circle"></i> {{ course.total }}</td>
+        <td>{{ course.assignment.1 }}</td>
+        <td>{{ course.mid_exam.1 }}</td>
+        <td>{{ course.quiz.1 }}</td>
+        <td>{{ course.attendance.1 }}</td>
+        <td>{{ course.final_exam.1 }}</td>
+        {% if course.total.1 >= 45 %}
+        <td class="success"><i class="fas fa-check-circle"></i> {{ course.total.1 }}</td>
         {% else %}
-        <td class="danger"><i class="fas fa-exclamation-circle"></i> {{ course.total }}</td>
+        <td class="danger"><i class="fas fa-exclamation-circle"></i> {{ course.total.1 }}</td>
         {% endif %}
       </tr>
     </tbody>
     {% endif %}
     {% endfor %}
   </table>
+</div>
+<div class="table-responsive p-3 mt-3">
+  <div class="table-title"><u>Third Semester:</u></div>
+  <table class="table table-light">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Course Title</th>
+      <th>Course Code</th>
+      <th>Cr.Hr(s)</th>
+      <th>Assignment</th>
+      <th>Mid exam</th>
+      <th>Quiz</th>
+      <th>Attendance</th>
+      <th>Final exam</th>
+      <th>Total</th>
+    </tr>
+  </thead>
+  {% for course in courses %}
+  {% if "Third" in course.course.semester %}
+  <tbody>
+    <tr>
+      <th scope="row">{{ forloop.counter }}</th>
+      <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
+      <td>{{ course.course.code }}</td>
+      <td>{{ course.course.credit }}</td>
+      <td>{{ course.assignment.2 }}</td>
+      <td>{{ course.mid_exam.2 }}</td>
+      <td>{{ course.quiz.2 }}</td>
+      <td>{{ course.attendance.2 }}</td>
+      <td>{{ course.final_exam.2 }}</td>
+      {% if course.total.2 >= 45 %}
+      <td class="success"><i class="fas fa-check-circle"></i> {{ course.total.2 }}</td>
+      {% else %}
+      <td class="danger"><i class="fas fa-exclamation-circle"></i> {{ course.total.2 }}</td>
+      {% endif %}
+    </tr>
+  </tbody>
+  {% endif %}
+  {% endfor %}
+</table>
 </div>
 
 <br>

@@ -262,22 +262,17 @@ class TakenCourse(models.Model):
         previous_results = Result.objects.filter(
             student=self.student, level__lte=self.student.level
         )
-        print("-----prev result====", previous_results)
         total_gpa = 0
         count = 0
 
         for result in previous_results:
-            print("-----result-----", result)
             for gpa in result.gpa:
-                print("----gpa=----", gpa)
                 if gpa is not None:
                     total_gpa += gpa
-                    print("------total gpa---", total_gpa)
                     count += 1
 
         try:
             cgpa = round(total_gpa / count, 2)
-            print("-----cgpa----", cgpa)
             return cgpa
         except ZeroDivisionError:
             return 0
