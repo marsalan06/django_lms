@@ -2,29 +2,28 @@ from django import forms
 from django.db import transaction
 
 from .models import SEMESTER, NewsAndEvents, Semester, Session
+from accounts.models import Organization
 
 
 # news and events
 class NewsAndEventsForm(forms.ModelForm):
     class Meta:
         model = NewsAndEvents
-        fields = (
-            "title",
-            "summary",
-            "posted_as",
-            "organization"
-        )
+        fields = ("title", "summary", "posted_as", "organization")
 
     def __init__(self, *args, **kwargs):
-        req_user = kwargs.pop('user', None)
+        req_user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         self.fields["title"].widget.attrs.update({"class": "form-control"})
         self.fields["summary"].widget.attrs.update({"class": "form-control"})
         self.fields["posted_as"].widget.attrs.update({"class": "form-control"})
         self.fields["organization"].widget.attrs.update({"class": "form-control"})
-
-        self.fields["organization"].queryset = self.fields["organization"].queryset.filter(organization_id=req_user.organization.organization_id)
-
+        if req_user.organization:
+            self.fields["organization"].queryset = self.fields[
+                "organization"
+            ].queryset.filter(organization_id=req_user.organization.organization_id)
+        else:
+            self.fields["organization"].queryset = self.fields["organization"].queryset
 
 
 class SessionForm(forms.ModelForm):
