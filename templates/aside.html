@@ -22,7 +22,7 @@
 				</div>
 			</div>
 			<a href="/">
-				{% if request.user.get_org_logo %}
+				{% if request.user.organization.logo %}
     			<img src="{{ request.user.organization.logo.url }}" alt="{{ request.user.get_org_logo }} Logo">
 				{% else %}
 				<img src="{% static 'img/dj-lms.png' %}" width="110px" alt="Logo Django LMS">
