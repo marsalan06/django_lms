@@ -280,7 +280,9 @@ def edit_staff(request, pk):
             messages.success(request, "Lecturer " + full_name + " has been updated.")
             return redirect("lecturer_list")
         else:
-            messages.error(request, "Please correct the error below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = ProfileUpdateForm(instance=instance, user=request.user)
     return render(

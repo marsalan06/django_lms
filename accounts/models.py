@@ -104,8 +104,8 @@ class Organization(models.Model):
     name = models.CharField(max_length=255)
     type_of_org = models.CharField(max_length=100, choices=TYPE_OF_ORG)
     address = models.TextField(null=True)
-    email = models.EmailField()
-    phone_number = models.CharField(max_length=20, null=True)
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20, null=True, unique=True)
     website = models.URLField(blank=True, null=True)
     establishment_year = models.IntegerField(
         validators=[
@@ -187,7 +187,7 @@ class User(AbstractUser):
     picture = models.ImageField(
         upload_to="profile_pictures/%y/%m/%d/", default="default.png", null=True
     )
-    email = models.EmailField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True, unique=True)
     organization = models.ForeignKey(
         Organization,
         on_delete=models.SET_NULL,

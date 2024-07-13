@@ -11,6 +11,7 @@ from django.contrib.auth.forms import (
     UserChangeForm,
 )
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 from django.contrib.auth.forms import PasswordResetForm
 from course.models import Program
@@ -25,6 +26,12 @@ from .models import (
     STATUS_CHOICES,
 )
 from .models import User, Student, Parent, RELATION_SHIP, LEVEL, GENDERS
+import re
+
+
+def numeric_only(value):
+    if not re.match(r"^\d+$", value):
+        raise ValidationError("Phone number must contain only numeric characters.")
 
 
 class StaffAddForm(UserCreationForm):
@@ -75,6 +82,7 @@ class StaffAddForm(UserCreationForm):
 
     phone = forms.CharField(
         max_length=30,
+        validators=[numeric_only],
         widget=forms.TextInput(
             attrs={
                 "type": "text",
@@ -140,6 +148,12 @@ class StaffAddForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("An account with this email already exists.")
+        return email
+
     @transaction.atomic()
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -195,6 +209,7 @@ class OrganizationAddForm(forms.ModelForm):
     )
     phone_number = forms.CharField(
         max_length=20,
+        validators=[numeric_only],
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "Phone Number"}
         ),
@@ -273,6 +288,7 @@ class StudentAddForm(UserCreationForm):
 
     phone = forms.CharField(
         max_length=30,
+        validators=[numeric_only],
         widget=forms.TextInput(
             attrs={
                 "type": "text",
@@ -462,6 +478,7 @@ class ProfileUpdateForm(UserChangeForm):
                 "class": "form-control",
             }
         ),
+        validators=[numeric_only],
         label="Phone No.",
     )
 
@@ -545,6 +562,7 @@ class ParentAddForm(UserCreationForm):
                 "class": "form-control",
             }
         ),
+        validators=[numeric_only],
         label="Mobile No.",
     )
 
