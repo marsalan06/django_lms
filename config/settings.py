@@ -36,7 +36,8 @@ ALLOWED_HOSTS = [
     "your-domain.com",
     ".ngrok.io",
     "54.219.122.213",
-    "dev.learn0leap.com" ".dev.learn0leap.com",
+    "dev.learn0leap.com",
+    ".dev.learn0leap.com",
 ]
 CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.app"]
 
