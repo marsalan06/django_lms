@@ -28,7 +28,15 @@ SECRET_KEY = config(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = ["*", "127.0.0.1", "your-domain.com"]
+ALLOWED_HOSTS = [
+    "lms",
+    "0.0.0.0",
+    "localhost",
+    "127.0.0.1",
+    "your-domain.com",
+    ".ngrok.io",
+    "54.219.122.213",
+]
 CSRF_TRUSTED_ORIGINS = ["https://*.ngrok-free.app"]
 
 # change the default user models to our custom model
