@@ -70,4 +70,5 @@ urlpatterns = [
     path("course/registration/", course_registration, name="course_registration"),
     path("course/drop/", course_drop, name="course_drop"),
     path("my_courses/", user_course_list, name="user_course_list"),
+    path("ajax/get_programs/", get_programs, name="get_programs"),
 ]

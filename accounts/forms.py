@@ -34,99 +34,64 @@ def numeric_only(value):
         raise ValidationError("Phone number must contain only numeric characters.")
 
 
+def no_special_characters(value):
+    if not re.match(r"^[a-zA-Z\s]+$", value):
+        raise ValidationError("This field must contain only letters and spaces.")
+
+
+def non_numeric_address(value):
+    if re.match(r"^\d+$", value):
+        raise ValidationError("Address cannot be entirely numeric.")
+
+
 class StaffAddForm(UserCreationForm):
     username = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Username",
         required=False,
     )
-
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        validators=[no_special_characters],
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="First Name",
     )
-
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        validators=[no_special_characters],
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Last Name",
     )
-
     address = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        validators=[non_numeric_address],
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Address",
     )
-
     phone = forms.CharField(
         max_length=30,
         validators=[numeric_only],
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Mobile No.",
     )
-
-    email = forms.CharField(
+    email = forms.EmailField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Email",
     )
-
     password1 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password",
         required=False,
     )
-
     password2 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password Confirmation",
         required=False,
     )
-
     organization = forms.ModelChoiceField(
         queryset=Organization.objects.all(), required=False, label="Organization"
     )
@@ -184,6 +149,7 @@ class StaffAddForm(UserCreationForm):
 class OrganizationAddForm(forms.ModelForm):
     name = forms.CharField(
         max_length=255,
+        validators=[no_special_characters],
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "Organization Name"}
         ),
@@ -195,6 +161,7 @@ class OrganizationAddForm(forms.ModelForm):
         label="Type of Organization",
     )
     address = forms.CharField(
+        validators=[non_numeric_address],
         widget=forms.Textarea(
             attrs={"class": "form-control", "placeholder": "Address"}
         ),
@@ -277,67 +244,40 @@ class StudentAddForm(UserCreationForm):
     )
     address = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        validators=[non_numeric_address],
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Address",
     )
-
     phone = forms.CharField(
         max_length=30,
         validators=[numeric_only],
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Mobile No.",
     )
-
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        validators=[no_special_characters],
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="First name",
     )
-
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        validators=[no_special_characters],
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Last name",
     )
-
     gender = forms.CharField(
         widget=forms.Select(
             choices=GENDERS,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
+            attrs={"class": "browser-default custom-select form-control"},
         ),
     )
-
     level = forms.CharField(
         widget=forms.Select(
             choices=LEVEL,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
+            attrs={"class": "browser-default custom-select form-control"},
         ),
     )
-
     program = forms.ModelChoiceField(
         queryset=Program.objects.all(),
         widget=forms.Select(
@@ -345,37 +285,19 @@ class StudentAddForm(UserCreationForm):
         ),
         label="Program",
     )
-
     email = forms.EmailField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "email",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "email", "class": "form-control"}),
         label="Email Address",
     )
-
     password1 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password",
         required=False,
     )
-
     password2 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password Confirmation",
         required=False,
     )
@@ -397,6 +319,11 @@ class StudentAddForm(UserCreationForm):
         else:
             # Fallback to default behavior if user is not provided or has no specific organization
             self.fields["organization"].queryset = Organization.objects.all()
+
+        # Set the initial queryset for the program field
+        self.fields["program"].queryset = Program.objects.filter(
+            organization__in=self.fields["organization"].queryset
+        )
 
     # def validate_email(self):
     #     email = self.cleaned_data['email']
@@ -441,55 +368,31 @@ class StudentAddForm(UserCreationForm):
 
 
 class ProfileUpdateForm(UserChangeForm):
-
     first_name = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="First Name",
+        validators=[no_special_characters],
     )
-
     last_name = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Last Name",
+        validators=[no_special_characters],
     )
-
     gender = forms.CharField(
         widget=forms.Select(
             choices=GENDERS,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
+            attrs={"class": "browser-default custom-select form-control"},
         ),
     )
-
     phone = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         validators=[numeric_only],
         label="Phone No.",
     )
-
     address = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Address / city",
+        validators=[non_numeric_address],
     )
     organization = forms.ModelChoiceField(
         queryset=Organization.objects.all(), required=False, label="Organization"
@@ -498,15 +401,12 @@ class ProfileUpdateForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
-        # Dynamically filter `organization` field based on request.user
-
         user_organization = user.organization
         if user_organization:
             self.fields["organization"].queryset = Organization.objects.filter(
                 organization_id=user_organization.organization_id
             )
         else:
-            # Fallback to default behavior if user is not provided or has no specific organization
             self.fields["organization"].queryset = Organization.objects.all()
 
     class Meta:
@@ -535,69 +435,37 @@ class EmailValidationOnForgotPassword(PasswordResetForm):
 class ParentAddForm(UserCreationForm):
     username = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Username",
     )
     address = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Address",
+        validators=[non_numeric_address],
     )
-
     phone = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         validators=[numeric_only],
         label="Mobile No.",
     )
-
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="First name",
+        validators=[no_special_characters],
     )
-
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "text",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Last name",
+        validators=[no_special_characters],
     )
-
     email = forms.EmailField(
-        widget=forms.TextInput(
-            attrs={
-                "type": "email",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "email", "class": "form-control"}),
         label="Email Address",
     )
-
     student = forms.ModelChoiceField(
         queryset=Student.objects.all(),
         widget=forms.Select(
@@ -605,42 +473,22 @@ class ParentAddForm(UserCreationForm):
         ),
         label="Student",
     )
-
     relation_ship = forms.CharField(
         widget=forms.Select(
             choices=RELATION_SHIP,
-            attrs={
-                "class": "browser-default custom-select form-control",
-            },
+            attrs={"class": "browser-default custom-select form-control"},
         ),
     )
-
     password1 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password",
     )
-
     password2 = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={
-                "type": "password",
-                "class": "form-control",
-            }
-        ),
+        widget=forms.TextInput(attrs={"type": "password", "class": "form-control"}),
         label="Password Confirmation",
     )
-
-    # def validate_email(self):
-    #     email = self.cleaned_data['email']
-    #     if User.objects.filter(email__iexact=email, is_active=True).exists():
-    #         raise forms.ValidationError("Email has taken, try another email address. ")
 
     class Meta(UserCreationForm.Meta):
         model = User

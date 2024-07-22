@@ -8,6 +8,7 @@ from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
 from django_filters.views import FilterView
+from django.http import JsonResponse
 
 from accounts.models import User, Student
 from core.models import Session, Semester
@@ -23,6 +24,14 @@ from .forms import (
 )
 from .filters import ProgramFilter, CourseAllocationFilter
 from .models import Program, Course, CourseAllocation, Upload, UploadVideo
+
+
+def get_programs(request):
+    organization_id = request.GET.get("organization_id")
+    programs = Program.objects.filter(organization=organization_id).values(
+        "id", "title"
+    )
+    return JsonResponse(list(programs), safe=False)
 
 
 @method_decorator([login_required], name="dispatch")
