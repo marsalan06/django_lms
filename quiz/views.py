@@ -38,7 +38,7 @@ from .forms import (
     DescriptiveAnswerForm,
 )
 from .serializers import DescriptiveAnswerSerializer, DescriptiveQuestionSerializer
-
+from accounts.models import User
 
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizCreateView(CreateView):
@@ -256,9 +256,12 @@ class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
             )
 
         # search by user
+        # to do: like
         user_filter = self.request.GET.get("user_filter")
         if user_filter:
-            queryset = queryset.filter(user__username__icontains=user_filter)
+            user_id = User.objects.get(username=user_filter).id
+            queryset = queryset.filter(user_id=user_id)
+            
 
         return queryset
 
