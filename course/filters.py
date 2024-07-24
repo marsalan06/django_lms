@@ -6,7 +6,7 @@ from .models import Program, CourseAllocation, Course
 class ProgramFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(lookup_expr="icontains", label="")
     section = django_filters.CharFilter(
-        lookup_expr="exact", label=""
+        lookup_expr="iexact", label=""
     )  # Added section filter
     organization = django_filters.CharFilter(method="org_filter")
 
@@ -19,11 +19,14 @@ class ProgramFilter(django_filters.FilterSet):
 
         # Change html classes and placeholders
         self.filters["title"].field.widget.attrs.update(
-            {"class": "au-input", "placeholder": "Program name"}
+            {"class": "au-input", "placeholder": "Class name"}
         )
         self.filters["section"].field.widget.attrs.update(
             {"class": "au-input", "placeholder": "Section"}
         )
+
+    def org_filter(self, queryset, name, value):
+        return queryset.filter(organization__name__icontains=value)
 
     @property
     def qs(self):

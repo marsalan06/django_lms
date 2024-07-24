@@ -52,7 +52,7 @@ class ProgramManager(models.Manager):
             or_lookup = (
                 Q(title__icontains=query)
                 | Q(summary__icontains=query)
-                | Q(organization__icontains=query)
+                | Q(organization__name__icontains=query)
             )
             queryset = queryset.filter(
                 or_lookup
