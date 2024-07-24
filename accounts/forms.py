@@ -44,6 +44,16 @@ def non_numeric_address(value):
         raise ValidationError("Address cannot be entirely numeric.")
 
 
+def validate_email(value):
+    if User.objects.filter(email__iexact=value, is_active=True).exists():
+        raise forms.ValidationError("Email has taken, try another email address. ")
+
+
+def validate_organization(value):
+    if Organization.objects.filter(email__iexact=value).exists():
+        raise forms.ValidationError("Email has taken, try another email address. ")
+
+
 class StaffAddForm(UserCreationForm):
     username = forms.CharField(
         max_length=30,
@@ -70,7 +80,7 @@ class StaffAddForm(UserCreationForm):
         label="Address",
     )
     phone = forms.CharField(
-        max_length=30,
+        max_length=14,
         validators=[numeric_only],
         widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Mobile No.",
@@ -79,6 +89,7 @@ class StaffAddForm(UserCreationForm):
         max_length=30,
         widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Email",
+        validators=[validate_email],
     )
     password1 = forms.CharField(
         max_length=30,
@@ -173,9 +184,10 @@ class OrganizationAddForm(forms.ModelForm):
             attrs={"class": "form-control", "placeholder": "Email"}
         ),
         label="Email",
+        validators=[validate_organization],
     )
     phone_number = forms.CharField(
-        max_length=20,
+        max_length=14,
         validators=[numeric_only],
         widget=forms.TextInput(
             attrs={"class": "form-control", "placeholder": "Phone Number"}
@@ -249,7 +261,7 @@ class StudentAddForm(UserCreationForm):
         label="Address",
     )
     phone = forms.CharField(
-        max_length=30,
+        max_length=14,
         validators=[numeric_only],
         widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         label="Mobile No.",
@@ -288,6 +300,7 @@ class StudentAddForm(UserCreationForm):
     email = forms.EmailField(
         widget=forms.TextInput(attrs={"type": "email", "class": "form-control"}),
         label="Email Address",
+        validators=[validate_email],
     )
     password1 = forms.CharField(
         max_length=30,
@@ -324,11 +337,6 @@ class StudentAddForm(UserCreationForm):
         self.fields["program"].queryset = Program.objects.filter(
             organization__in=self.fields["organization"].queryset
         )
-
-    # def validate_email(self):
-    #     email = self.cleaned_data['email']
-    #     if User.objects.filter(email__iexact=email, is_active=True).exists():
-    #         raise forms.ValidationError("Email has taken, try another email address. ")
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -388,6 +396,7 @@ class ProfileUpdateForm(UserChangeForm):
         widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         validators=[numeric_only],
         label="Phone No.",
+        max_length=14,
     )
     address = forms.CharField(
         widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
@@ -445,7 +454,7 @@ class ParentAddForm(UserCreationForm):
         validators=[non_numeric_address],
     )
     phone = forms.CharField(
-        max_length=30,
+        max_length=14,
         widget=forms.TextInput(attrs={"type": "text", "class": "form-control"}),
         validators=[numeric_only],
         label="Mobile No.",
@@ -465,6 +474,7 @@ class ParentAddForm(UserCreationForm):
     email = forms.EmailField(
         widget=forms.TextInput(attrs={"type": "email", "class": "form-control"}),
         label="Email Address",
+        validators=[validate_email],
     )
     student = forms.ModelChoiceField(
         queryset=Student.objects.all(),

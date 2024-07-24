@@ -196,7 +196,9 @@ def profile_update(request):
             messages.success(request, "Your profile has been updated successfully.")
             return redirect("profile")
         else:
-            messages.error(request, "Please correct the error(s) below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = ProfileUpdateForm(instance=request.user, user=request.user)
     return render(
@@ -219,7 +221,9 @@ def change_password(request):
             messages.success(request, "Your password was successfully updated!")
             return redirect("profile")
         else:
-            messages.error(request, "Please correct the error(s) below. ")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = PasswordChangeForm(request.user)
     return render(
@@ -254,6 +258,10 @@ def staff_add_view(request):
                 + " has been created.",
             )
             return redirect("lecturer_list")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = StaffAddForm(user=request.user)
 
@@ -370,7 +378,9 @@ def organization_add_view(request):
             )
             return redirect("organization_list")  # Adjust the redirect URL as needed
         else:
-            messages.error(request, "Correct the error(s) below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = OrganizationAddForm()
     return render(
@@ -394,7 +404,9 @@ def edit_organization(request, pk):
             )
             return redirect("organization_list")  # Adjust the redirect URL as needed
         else:
-            messages.error(request, "Please correct the error below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = OrganizationAddForm(instance=instance)
 
@@ -440,7 +452,9 @@ def student_add_view(request):
             )
             return redirect("student_list")
         else:
-            messages.error(request, "Correct the error(s) below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = StudentAddForm(user=request.user)
 
@@ -467,7 +481,9 @@ def edit_student(request, pk):
             messages.success(request, ("Student " + full_name + " has been updated."))
             return redirect("student_list")
         else:
-            messages.error(request, "Please correct the error below.")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = ProfileUpdateForm(instance=instance, user=request.user)
     return render(
