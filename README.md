@@ -58,7 +58,9 @@ If you would like to contribute, simply begin by implementing one from the list 
 ```bash
 git clone https://github.com/adilmohak/django-lms.git
 ```
+
 - For docker based setup , place this docker-compose.yml outside the root lms folder
+
 ```
 version: "3"
 
@@ -125,11 +127,13 @@ services:
 volumes:
   postgres_data_school:
   postgres_data:
-  
+
 networks:
   app_network: #network
 ```
+
 - .env file in root of lms folder
+
 ```
 POSTGRES_DB=django_lms
 POSTGRES_USER=arsalan
@@ -144,8 +148,8 @@ POSTGRES_HOST_AUTH_METHOD=trust
 EMAIL_HOST_USER=[EMAIL_HOST_USER]
 EMAIL_HOST_PASSWORD=[EMAIL_HOST_PASSWORD]
 EMAIL_FROM_ADDRESS=[EMAIL_FROM_ADDRESS]
-FRONT_END_URL=http://school:8000/
 ```
+
 - Create and activate a python virtual environment
 
 ```bash
