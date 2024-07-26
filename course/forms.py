@@ -102,6 +102,9 @@ class CourseAllocationForm(forms.ModelForm):
         self.fields["lecturer"].queryset = User.objects.filter(
             is_lecturer=True, organization=user.organization
         )
+        self.fields["courses"].queryset = Course.objects.filter(
+            program__organization_id=user.organization
+        )
 
 
 class EditCourseAllocationForm(forms.ModelForm):

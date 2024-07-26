@@ -163,7 +163,7 @@ class Organization(models.Model):
             )
         }
         # URL of the webhook endpoint
-        webhook_url = f"{settings.FRONT_END_URL}school/api/webhook/receive"
+        webhook_url = f"{settings.FRONT_END_URL}/api/webhook/receive"
 
         try:
             response = requests.post(

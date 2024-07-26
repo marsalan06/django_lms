@@ -37,9 +37,9 @@
             <div class="card">
                 <p class="form-title">Others</p>
                 <div class="card-body">
+                    {{ form.organization|as_crispy_field }}
+                    {{ form.level|as_crispy_field }}
                     {{ form.program|as_crispy_field }}
-                    {{ form.level | as_crispy_field }}
-                    {{ form.organization|as_crispy_field}}
                 </div>
             </div>
         </div>
@@ -49,3 +49,29 @@
 </form>
 
 {% endblock content %}
+
+{% block js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_organization').change(function() {
+            var organization_id = $(this).val();
+            $.ajax({
+                url: '{% url "get_programs" %}',
+                data: {
+                    'organization_id': organization_id
+                },
+                success: function(data) {
+                    var program_select = $('#id_program');
+                    program_select.empty();
+                    program_select.append('<option value="">---------</option>');
+                    $.each(data, function(index, item) {
+                        program_select.append('<option value="' + item.id + '">' + item.title + '</option>');
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock js %}
+
