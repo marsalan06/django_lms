@@ -8,6 +8,7 @@ from .models import OrganizationSubscription, OrganizationInvoice, StudentInvoic
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from accounts.models import User
+from decimal import Decimal
 
 # def organizationtransaction_check_required(view_func):
 #     def wrapper(request, *args, **kwargs):
@@ -139,7 +140,7 @@ def payment_check_required(view_func):
             # Access the related organization of the user
             organization = user.organization
             
-            if organization:
+            if organization: 
                 try:
                     # Access OrganizationSubscription related to the user's organization
                     organization_subscription = organization.organizationsubscription
@@ -183,7 +184,7 @@ def payment_check_required(view_func):
                     ]
 
                     # missing_dates = [date for date in existing_invoice_dates if date not in payment_dates]
-                
+                   
                     
                     # Print missing dates
                     for date in missing_dates:
@@ -196,7 +197,85 @@ def payment_check_required(view_func):
             else:
                 # Handle case where the user has no associated organization
                 print("User has no associated organization.")
-        
+
+            
+            if organization: 
+                try:
+                    # Access OrganizationSubscription related to the user's organization
+                    organization_subscription = organization.organizationsubscription
+
+                    student_count = User.objects.filter(
+                    organization=organization,
+                    is_student=True
+                    ).count()
+                    print(student_count)
+                    print(f"Subscription: {organization_subscription.subscription.name}, Start Date: {organization_subscription.date_of_subscription}")
+                     # Extract date_of_subscription and subscorganization_subscriptionription duration
+                    date_of_subscription = organization_subscription.date_of_subscription
+                    subscription_duration = organization_subscription.subscription.duration
+                    price = organization_subscription.subscription.price*student_count
+                    
+                    
+                    # Print or use the variables as needed
+                    print(f"Date of Subscription: {date_of_subscription}")
+                    print(f"Subscription Duration: {subscription_duration}")
+                    current_date = timezone.now().date()
+                
+                    payment_dates = []
+                    next_payment_date = date_of_subscription
+                    
+                    while next_payment_date <= current_date:
+                        payment_dates.append(next_payment_date)
+                        next_payment_date = add_months(next_payment_date, subscription_duration)
+
+                    existing_invoices = OrganizationInvoice.objects.filter(
+                        organization_subscription=organization_subscription
+                    ).values_list('date', 'amount')
+                    existing_invoice_dates = [invoice_date for invoice_date, _ in existing_invoices]
+                    amount = [amount for _, amount in existing_invoices]
+                    
+                    
+
+                    print(amount)
+                    print("noob\n\n")
+                    # amount=amount[:-1]
+                    
+                    payment_dates=payment_dates[:-1]
+                    missing_dates=[]
+                    # Find missing payment dates
+                    payment_dates_month_year = [(date.year, date.month) for date in payment_dates]
+                    existing_invoice_dates_month_year = [(date.year, date.month) for date in existing_invoice_dates]
+
+                    # Find missing payment months
+                    missing_dates = [
+                        (year, month) for year, month in payment_dates_month_year
+                        if (year, month) not in existing_invoice_dates_month_year
+                    ]
+
+                    # missing_dates = [date for date in existing_invoice_dates if date not in payment_dates]
+                
+                    
+                    # Print missing dates
+                    for date in missing_dates:
+                        print(f"Missing invoice for {date}")
+                    if(len(missing_dates)>0):
+                        return redirect("/billing")
+                    this_month = datetime.now().month
+                    this_year = datetime.now().year
+                    for i in range(len(existing_invoice_dates_month_year)):
+                        year, month = existing_invoice_dates_month_year[i]
+                        
+                        if year == this_year and month == this_month:
+                            print("wowr")
+                        else:
+                            if amount[i] < Decimal(0.75) * price:
+                                
+                                return redirect("/billing/billing")
+                                print(f"Price less then 75% for the month: {existing_invoice_dates[i]}")
+                        
+                except OrganizationSubscription.DoesNotExist:
+                    # Handle case where no OrganizationSubscription exists
+                    print("No subscription found for this organization.")
         # Continue with the original view function
         return view_func(request, *args, **kwargs)
 

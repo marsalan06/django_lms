@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from accounts.models import Organization
-
+from django.db.models import Sum
 # Create your models here.
 
 
@@ -53,6 +53,45 @@ class StudentInvoice(models.Model):
     payment_complete = models.BooleanField(default=False)
     payment_date = models.DateField(null=True)
     invoice_code = models.CharField(max_length=200, blank=True, null=True)
+    
+    def save(self, *args, **kwargs):
+        # Check if the instance is being updated
+        if self.pk:
+            old_instance = StudentInvoice.objects.get(pk=self.pk)
+            old_amount = old_instance.amount
+        else:
+            old_amount = 0
+
+        super(StudentInvoice, self).save(*args, **kwargs)
+        self.update_organization_invoice(old_amount)
+
+    def update_organization_invoice(self, old_amount):
+        invoice_month = self.date.month
+        invoice_year = self.date.year
+        org_invoice = OrganizationInvoice.objects.filter(
+            organization_subscription=self.organization_subscription,
+            date__month=invoice_month,
+            date__year=invoice_year
+        ).first()
+
+        if org_invoice:
+            # Update the amount in the existing organization invoice
+            amount_difference = self.amount - old_amount
+            org_invoice.amount += amount_difference
+            org_invoice.save()
+        else:
+            # Create a new OrganizationInvoice if none exists for the same month and year
+            OrganizationInvoice.objects.create(
+                organization_subscription=self.organization_subscription,
+                total=self.total,
+                amount=self.amount,
+                date=self.date,
+                payment_complete=self.payment_complete,
+                payment_date=self.payment_date,
+                invoice_code=self.invoice_code,
+            )
+
+
  
 class OrganizationInvoice(models.Model):
     organization_subscription = models.ForeignKey(OrganizationSubscription, on_delete=models.CASCADE, null=True)
