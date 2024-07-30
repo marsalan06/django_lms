@@ -22,6 +22,11 @@ urlpatterns = [
         name="mc_create",
     ),
     path(
+        "mc-question/edit/<slug>/<int:quiz_id>/<int:pk>/",
+        MCQuestionEdit.as_view(),
+        name="mc_edit",
+    ),
+    path(
         "desc-question/add/<str:slug>/<int:quiz_id>/",
         add_descriptive_question,
         name="add_descriptive_question",

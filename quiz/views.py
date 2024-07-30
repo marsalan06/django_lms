@@ -40,6 +40,7 @@ from .forms import (
 from .serializers import DescriptiveAnswerSerializer, DescriptiveQuestionSerializer
 from accounts.models import User
 
+
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizCreateView(CreateView):
     model = Quiz
@@ -151,6 +152,7 @@ def add_descriptive_question(request, slug, quiz_id):
 class MCQuestionCreate(CreateView):
     model = MCQuestion
     form_class = MCQuestionForm
+    template_name = "quiz/mcquestion_form.html"
 
     def get_context_data(self, **kwargs):
         context = super(MCQuestionCreate, self).get_context_data(**kwargs)
@@ -159,13 +161,14 @@ class MCQuestionCreate(CreateView):
         context["quizQuestions"] = Question.objects.filter(
             quiz=self.kwargs["quiz_id"]
         ).count()
+        context["questions"] = MCQuestion.objects.filter(quiz=self.kwargs["quiz_id"])
+        context["action"] = "Add"
         if self.request.POST:
             context["form"] = MCQuestionForm(self.request.POST)
             context["formset"] = MCQuestionFormSet(self.request.POST)
         else:
             context["form"] = MCQuestionForm(initial={"quiz": self.kwargs["quiz_id"]})
             context["formset"] = MCQuestionFormSet()
-
         return context
 
     def form_valid(self, form):
@@ -184,8 +187,53 @@ class MCQuestionCreate(CreateView):
                         slug=self.kwargs["slug"],
                         quiz_id=self.kwargs["quiz_id"],
                     )
-                return redirect("quiz_index", course.slug)
+                return redirect("quiz_index", slug=self.kwargs["slug"])
         return super(MCQuestionCreate, self).form_invalid(form)
+
+
+@method_decorator([login_required, lecturer_required], name="dispatch")
+class MCQuestionEdit(UpdateView):
+    model = MCQuestion
+    form_class = MCQuestionForm
+    template_name = "quiz/mcquestion_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MCQuestionEdit, self).get_context_data(**kwargs)
+        context["course"] = Course.objects.get(slug=self.kwargs["slug"])
+        context["quiz_obj"] = Quiz.objects.get(id=self.kwargs["quiz_id"])
+        context["quizQuestions"] = Question.objects.filter(
+            quiz=self.kwargs["quiz_id"]
+        ).count()
+        context["questions"] = MCQuestion.objects.filter(quiz=self.kwargs["quiz_id"])
+        context["action"] = "Edit"
+        if self.request.POST:
+            context["form"] = MCQuestionForm(self.request.POST, instance=self.object)
+            context["formset"] = MCQuestionFormSet(
+                self.request.POST, instance=self.object
+            )
+        else:
+            context["form"] = MCQuestionForm(instance=self.object)
+            context["formset"] = MCQuestionFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["formset"]
+        course = context["course"]
+        with transaction.atomic():
+            form.instance.question = self.request.POST.get("content")
+            self.object = form.save()
+            if formset.is_valid():
+                formset.instance = self.object
+                formset.save()
+                if "another" in self.request.POST:
+                    return redirect(
+                        "mc_create",
+                        slug=self.kwargs["slug"],
+                        quiz_id=self.kwargs["quiz_id"],
+                    )
+                return redirect("quiz_index", slug=self.kwargs["slug"])
+        return super(MCQuestionEdit, self).form_invalid(form)
 
 
 @login_required
@@ -261,7 +309,6 @@ class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
         if user_filter:
             user_id = User.objects.get(username=user_filter).id
             queryset = queryset.filter(user_id=user_id)
-            
 
         return queryset
 
