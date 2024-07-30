@@ -27,24 +27,29 @@ urlpatterns = [
         name="mc_edit",
     ),
     path(
-        "desc-question/add/<str:slug>/<int:quiz_id>/",
+        "desc-question/add/<str:slug>/<int:quiz_id>/",  # useless
         add_descriptive_question,
         name="add_descriptive_question",
     ),
     path(
         "questions/",
-        DescriptiveQuestionListView.as_view(),
+        DescriptiveQuestionListView.as_view(),  # useless
         name="descriptive_question_list",
     ),
     path(
         "questions/<int:pk>/",
-        DescriptiveQuestionDetailView.as_view(),
+        DescriptiveQuestionDetailView.as_view(),  # useless
         name="descriptive_question_detail",
     ),
     path(
-        "<slug:slug>/descriptive-question/add/<int:quiz_id>/",
+        "<slug:slug>/descriptive-question/add/<int:quiz_id>/",  # working
         DescriptiveQuestionCreate.as_view(),
         name="descriptive_create",
+    ),
+    path(
+        "<slug:slug>/descriptive-question/edit/<int:quiz_id>/<int:pk>/",  # working
+        DescriptiveQuestionEdit.as_view(),
+        name="descriptive_edit",
     ),
     # path('mc-question/add/<int:pk>/<quiz_pk>/', MCQuestionCreate.as_view(), name='mc_create'),
 ]
