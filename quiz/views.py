@@ -40,6 +40,7 @@ from .forms import (
 from .serializers import DescriptiveAnswerSerializer, DescriptiveQuestionSerializer
 from accounts.models import User
 
+
 @method_decorator([login_required, lecturer_required], name="dispatch")
 class QuizCreateView(CreateView):
     model = Quiz
@@ -127,6 +128,7 @@ def quiz_delete(request, slug, pk):
     return redirect("quiz_index", quiz.course.slug)
 
 
+# useless
 def add_descriptive_question(request, slug, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
     if request.method == "POST":
@@ -151,6 +153,7 @@ def add_descriptive_question(request, slug, quiz_id):
 class MCQuestionCreate(CreateView):
     model = MCQuestion
     form_class = MCQuestionForm
+    template_name = "quiz/mcquestion_form.html"
 
     def get_context_data(self, **kwargs):
         context = super(MCQuestionCreate, self).get_context_data(**kwargs)
@@ -159,13 +162,14 @@ class MCQuestionCreate(CreateView):
         context["quizQuestions"] = Question.objects.filter(
             quiz=self.kwargs["quiz_id"]
         ).count()
+        context["questions"] = MCQuestion.objects.filter(quiz=self.kwargs["quiz_id"])
+        context["action"] = "Add"
         if self.request.POST:
             context["form"] = MCQuestionForm(self.request.POST)
             context["formset"] = MCQuestionFormSet(self.request.POST)
         else:
             context["form"] = MCQuestionForm(initial={"quiz": self.kwargs["quiz_id"]})
             context["formset"] = MCQuestionFormSet()
-
         return context
 
     def form_valid(self, form):
@@ -184,8 +188,53 @@ class MCQuestionCreate(CreateView):
                         slug=self.kwargs["slug"],
                         quiz_id=self.kwargs["quiz_id"],
                     )
-                return redirect("quiz_index", course.slug)
+                return redirect("quiz_index", slug=self.kwargs["slug"])
         return super(MCQuestionCreate, self).form_invalid(form)
+
+
+@method_decorator([login_required, lecturer_required], name="dispatch")
+class MCQuestionEdit(UpdateView):
+    model = MCQuestion
+    form_class = MCQuestionForm
+    template_name = "quiz/mcquestion_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MCQuestionEdit, self).get_context_data(**kwargs)
+        context["course"] = Course.objects.get(slug=self.kwargs["slug"])
+        context["quiz_obj"] = Quiz.objects.get(id=self.kwargs["quiz_id"])
+        context["quizQuestions"] = Question.objects.filter(
+            quiz=self.kwargs["quiz_id"]
+        ).count()
+        context["questions"] = MCQuestion.objects.filter(quiz=self.kwargs["quiz_id"])
+        context["action"] = "Edit"
+        if self.request.POST:
+            context["form"] = MCQuestionForm(self.request.POST, instance=self.object)
+            context["formset"] = MCQuestionFormSet(
+                self.request.POST, instance=self.object
+            )
+        else:
+            context["form"] = MCQuestionForm(instance=self.object)
+            context["formset"] = MCQuestionFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        formset = context["formset"]
+        course = context["course"]
+        with transaction.atomic():
+            form.instance.question = self.request.POST.get("content")
+            self.object = form.save()
+            if formset.is_valid():
+                formset.instance = self.object
+                formset.save()
+                if "another" in self.request.POST:
+                    return redirect(
+                        "mc_create",
+                        slug=self.kwargs["slug"],
+                        quiz_id=self.kwargs["quiz_id"],
+                    )
+                return redirect("quiz_index", slug=self.kwargs["slug"])
+        return super(MCQuestionEdit, self).form_invalid(form)
 
 
 @login_required
@@ -261,7 +310,6 @@ class QuizMarkingList(QuizMarkerMixin, SittingFilterTitleMixin, ListView):
         if user_filter:
             user_id = User.objects.get(username=user_filter).id
             queryset = queryset.filter(user_id=user_id)
-            
 
         return queryset
 
@@ -429,12 +477,14 @@ class QuizTake(FormView):
         return render(self.request, self.result_template_name, results)
 
 
+# useless
 class DescriptiveQuestionListView(ListView):
     model = DescriptiveQuestion
     context_object_name = "questions"
     template_name = "descriptivequestion_list.html"
 
 
+# useless
 class DescriptiveQuestionDetailView(DetailView):
     model = DescriptiveQuestion
     context_object_name = "question"
@@ -455,11 +505,12 @@ class DescriptiveQuestionDetailView(DetailView):
         return self.render_to_response(self.get_context_data(form=form))
 
 
+# usefull
 @method_decorator([login_required, lecturer_required], name="dispatch")
-# class being utalized
 class DescriptiveQuestionCreate(CreateView):
     model = DescriptiveQuestion
     form_class = DescriptiveQuestionForm
+    template_name = "quiz/descriptivequestion_form.html"
 
     def get_context_data(self, **kwargs):
         context = super(DescriptiveQuestionCreate, self).get_context_data(**kwargs)
@@ -468,13 +519,10 @@ class DescriptiveQuestionCreate(CreateView):
         context["quizQuestions"] = DescriptiveQuestion.objects.filter(
             quiz=context["quiz_obj"]
         ).count()
-        # if self.request.POST:
-        #     context["form"] = DescriptiveQuestionForm(self.request.POST)
-        # else:
-        #     context["form"] = DescriptiveQuestionForm(
-        #         initial={"quiz": self.kwargs["quiz_id"]}
-        #     )
-
+        context["questions"] = DescriptiveQuestion.objects.filter(
+            quiz=self.kwargs["quiz_id"]
+        )
+        context["action"] = "Add"
         return context
 
     def form_valid(self, form):
@@ -483,7 +531,6 @@ class DescriptiveQuestionCreate(CreateView):
             self.object.save()
             # Assign the quiz using the set method for many-to-many relationships
             self.object.quiz.set([self.kwargs["quiz_id"]])
-            form.save_m2m()  # This is needed to save the many-to-many relationship set above
             if "another" in self.request.POST:
                 return redirect(
                     "descriptive_create",
@@ -491,5 +538,49 @@ class DescriptiveQuestionCreate(CreateView):
                     quiz_id=self.kwargs["quiz_id"],
                 )
             return redirect("quiz_index", slug=self.kwargs["slug"])
+        return super().form_invalid(form)
 
-        return super().form_invalid(form)  # Handle the form invalid case
+
+# usefull
+@method_decorator([login_required, lecturer_required], name="dispatch")
+class DescriptiveQuestionEdit(UpdateView):
+    model = DescriptiveQuestion
+    form_class = DescriptiveQuestionForm
+    template_name = "quiz/descriptivequestion_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(DescriptiveQuestionEdit, self).get_context_data(**kwargs)
+        context["course"] = Course.objects.get(slug=self.kwargs["slug"])
+        context["quiz_obj"] = Quiz.objects.get(id=self.kwargs["quiz_id"])
+        context["quizQuestions"] = DescriptiveQuestion.objects.filter(
+            quiz=self.kwargs["quiz_id"]
+        ).count()
+        context["questions"] = DescriptiveQuestion.objects.filter(
+            quiz=self.kwargs["quiz_id"]
+        )
+        context["action"] = "Edit"
+
+        if self.request.POST:
+            context["form"] = DescriptiveQuestionForm(
+                self.request.POST, instance=self.object
+            )
+        else:
+            context["form"] = DescriptiveQuestionForm(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        course = context["course"]
+
+        with transaction.atomic():
+            form.instance.question = self.request.POST.get("content")
+            self.object = form.save()
+            self.object.quiz.set([self.kwargs["quiz_id"]])
+            if "another" in self.request.POST:
+                return redirect(
+                    "descriptive_create",
+                    slug=self.kwargs["slug"],
+                    quiz_id=self.kwargs["quiz_id"],
+                )
+            return redirect("quiz_index", slug=self.kwargs["slug"])
+        return super(DescriptiveQuestionEdit, self).form_invalid(form)

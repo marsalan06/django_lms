@@ -10,11 +10,11 @@
         <li class="breadcrumb-item"><a href="{% url 'program_detail' course.program.id %}">{{ course.program }}</a></li>
         <li class="breadcrumb-item"><a href="{{ course.get_absolute_url }}">{{ course }}</a></li>
         <li class="breadcrumb-item"><a href="{% url 'quiz_index' course.slug %}">Quizzes</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Descriptive Question Form</li>
+        <li class="breadcrumb-item active" aria-current="page">{{ view.action }} Descriptive Question</li>
     </ol>
 </nav>
 
-<div class="title-1">Add Descriptive Questions [{{ quiz_obj|truncatechars:15 }}]</div>
+<div class="title-1">{{ view.action }} Descriptive Questions [{{ quiz_obj|truncatechars:15 }}]</div>
 <br><br>
 
 <div class="container">
@@ -35,7 +35,20 @@
             Save and add another
         </button>
         <button class="btn btn-primary my-4" type="submit">Save</button>
+        <a href="{% url 'quiz_index' course.slug %}" class="btn btn-secondary my-4">Back</a>
     </form>
+
+    <!-- Add this section to list existing questions with edit links -->
+    <div class="existing-questions mt-4">
+        <h2>Existing Questions</h2>
+        <ul>
+            {% for question in questions %}
+            <li>
+                {{ question.content }} - <a href="{% url 'descriptive_edit' slug=course.slug quiz_id=quiz_obj.id pk=question.id %}">Edit</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
 </div>
 
 {% endblock %}

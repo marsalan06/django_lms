@@ -97,20 +97,23 @@ class CourseAllocationForm(forms.ModelForm):
         fields = ["lecturer", "courses"]
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user")
+        user = kwargs.pop("user", None)
         super(CourseAllocationForm, self).__init__(*args, **kwargs)
-        self.fields["lecturer"].queryset = User.objects.filter(
-            is_lecturer=True, organization=user.organization
-        )
-        self.fields["courses"].queryset = Course.objects.filter(
-            program__organization_id=user.organization
-        )
+        if user.organization != None:
+            self.fields["lecturer"].queryset = User.objects.filter(
+                is_lecturer=True, organization=user.organization
+            )
+            self.fields["courses"].queryset = Course.objects.filter(
+                program__organization_id=user.organization
+            )
 
 
 class EditCourseAllocationForm(forms.ModelForm):
     courses = forms.ModelMultipleChoiceField(
         queryset=Course.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(
+            attrs={"class": "browser-default checkbox"}
+        ),
         required=True,
     )
     lecturer = forms.ModelChoiceField(
@@ -124,9 +127,19 @@ class EditCourseAllocationForm(forms.ModelForm):
         fields = ["lecturer", "courses"]
 
     def __init__(self, *args, **kwargs):
-        #    user = kwargs.pop('user')
+        user = kwargs.pop("user", None)
         super(EditCourseAllocationForm, self).__init__(*args, **kwargs)
-        self.fields["lecturer"].queryset = User.objects.filter(is_lecturer=True)
+
+        if user and user.organization:
+            self.fields["lecturer"].queryset = User.objects.filter(
+                is_lecturer=True, organization=user.organization
+            )
+            self.fields["courses"].queryset = Course.objects.filter(
+                program__organization=user.organization
+            )
+        else:
+            self.fields["lecturer"].queryset = User.objects.filter(is_lecturer=True)
+            self.fields["courses"].queryset = Course.objects.all()
 
 
 # Upload files to specific course
