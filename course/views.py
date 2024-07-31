@@ -9,8 +9,6 @@ from django.utils.decorators import method_decorator
 from django.views.generic import ListView
 from django_filters.views import FilterView
 from django.http import JsonResponse
-from django.db.models import Q
-
 
 from accounts.models import User, Student
 from core.models import Session, Semester
@@ -300,25 +298,10 @@ class CourseAllocationFilterView(FilterView):
     filterset_class = CourseAllocationFilter
     template_name = "course/course_allocation_view.html"
 
-    def get_queryset(self):
-        user = self.request.user
-        if user.organization:
-            return CourseAllocation.objects.filter(
-                Q(lecturer__organization=user.organization_id)
-                | Q(courses__program__organization=user.organization_id)
-            ).distinct()
-        else:
-            return CourseAllocation.objects.all().distinct()
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = "Course Allocations"
         return context
-
-    def get_filterset(self, filterset_class):
-        return filterset_class(
-            data=self.request.GET, queryset=self.get_queryset(), user=self.request.user
-        )
 
 
 @login_required
@@ -326,15 +309,13 @@ class CourseAllocationFilterView(FilterView):
 def edit_allocated_course(request, pk):
     allocated = get_object_or_404(CourseAllocation, pk=pk)
     if request.method == "POST":
-        form = EditCourseAllocationForm(
-            request.POST, instance=allocated, user=request.user
-        )
+        form = EditCourseAllocationForm(request.POST, instance=allocated)
         if form.is_valid():
             form.save()
             messages.success(request, "course assigned has been updated.")
             return redirect("course_allocation_view")
     else:
-        form = EditCourseAllocationForm(instance=allocated, user=request.user)
+        form = EditCourseAllocationForm(instance=allocated)
 
     return render(
         request,

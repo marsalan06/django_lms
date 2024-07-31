@@ -61,7 +61,7 @@ class Quiz(models.Model):
         blank=True,
         help_text=_("A detailed description of the quiz"),
     )
-    category = models.TextField(choices=CATEGORY_OPTIONS, blank=False)
+    category = models.TextField(choices=CATEGORY_OPTIONS, blank=True)
     type_of_quiz = models.TextField(choices=QUIZ_OPTIONS, blank=False)
     random_order = models.BooleanField(
         blank=False,

@@ -1,6 +1,5 @@
 from django import forms
 from django.forms.widgets import RadioSelect, Textarea
-from django.core.exceptions import ValidationError
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.utils.translation import gettext_lazy as _
 from django.db import transaction
@@ -64,15 +63,6 @@ class QuizAddForm(forms.ModelForm):
             self.fields["questions"].initial = (
                 self.instance.question_set.all().select_subclasses()
             )
-
-    def clean_pass_mark(self):
-        pass_mark = self.cleaned_data.get("pass_mark")
-        if pass_mark is not None:
-            if not (0 <= pass_mark <= 100):
-                raise ValidationError(
-                    f"{pass_mark} is not within the valid range (0-100)."
-                )
-        return pass_mark
 
     def save(self, commit=True):
         quiz = super(QuizAddForm, self).save(commit=False)
