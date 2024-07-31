@@ -25,6 +25,8 @@ from .forms import (
 from .models import Parent, Student, User, Organization
 
 
+from billings.decorators import payment_check_required
+
 def validate_username(request):
     username = request.GET.get("username", None)
     data = {"is_taken": User.objects.filter(username__iexact=username).exists()}
@@ -63,6 +65,7 @@ def register_parent(request):
     return render(request, "registration/register_parent.html", {"form": form})
 
 
+@payment_check_required
 @login_required
 def profile(request):
     """Show profile of any user that fire out the request"""
