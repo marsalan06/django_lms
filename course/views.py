@@ -4,6 +4,7 @@ from django.db.models import Sum, Avg, Max, Min, Count
 from django.contrib.auth.decorators import login_required
 from django.views.generic import CreateView
 from django.core.paginator import Paginator
+from django.views import View
 from django.conf import settings
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
@@ -319,6 +320,24 @@ class CourseAllocationFilterView(FilterView):
         return filterset_class(
             data=self.request.GET, queryset=self.get_queryset(), user=self.request.user
         )
+
+
+class FetchCoursesView(View):
+    def get(self, request, *args, **kwargs):
+        lecturer_id = request.GET.get("lecturer_id")
+        if lecturer_id:
+            lecturer = User.objects.get(id=lecturer_id)
+            courses = Course.objects.filter(program__organization=lecturer.organization)
+            courses_list = [
+                {
+                    "id": course.id,
+                    "code": course.code,
+                    "title": course.title,
+                }
+                for course in courses
+            ]
+            return JsonResponse({"courses": courses_list})
+        return JsonResponse({"courses": []})
 
 
 @login_required

@@ -33,16 +33,14 @@
             <p class="form-title">Course Allocation Form</p>
             <div class="p-3">
                 <form action="" method="POST">{% csrf_token %}
-                    <!-- {{ form|crispy }} -->
-                        <div class="form-group">
-                            {{ form.lecturer.label }}{{ form.lecturer }}
-                            <span class="danger">{{ form.lecturer.errors }}</span>
-                        </div>
-                        <div class="form-group">
-                            {{ form.courses.label }}{{ form.courses }}
-                            <span class="danger">{{ form.courses.errors }}</span>
-                        </div>
-                    {% for course in form.courses.all %}{{ course }}{% endfor %}
+                    <div class="form-group">
+                        {{ form.lecturer.label }}{{ form.lecturer }}
+                        <span class="danger">{{ form.lecturer.errors }}</span>
+                    </div>
+                    <div class="form-group">
+                        {{ form.courses.label }}<div id="course-container">{{ form.courses }}</div>
+                        <span class="danger">{{ form.courses.errors }}</span>
+                    </div>
 
                     <input class="btn btn-outline-primary" type="submit" value="Save">
                 </form>
@@ -51,5 +49,30 @@
 
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_lecturer').change(function() {
+            var lecturerId = $(this).val();
+            $.ajax({
+                url: '{% url "fetch_courses" %}',
+                data: {
+                    'lecturer_id': lecturerId
+                },
+                success: function (data) {
+                    var courses = data.courses;
+                    var courseContainer = $('#course-container');
+                    courseContainer.empty();
+                    for (var i = 0; i < courses.length; i++) {
+                        var course = courses[i];
+                        var checkbox = '<div class="form-check"><input class="form-check-input" type="checkbox" name="courses" value="' + course.id + '" id="course_' + course.id + '"><label class="form-check-label" for="course_' + course.id + '">' + course.title + ' (' + course.code + ') ' + '</label></div>';
+                        courseContainer.append(checkbox);
+                    }
+                }
+            });
+        });
+    });
+</script>
 
 {% endblock content %}

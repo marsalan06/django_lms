@@ -110,14 +110,14 @@ class CourseAllocationForm(forms.ModelForm):
 
 class EditCourseAllocationForm(forms.ModelForm):
     courses = forms.ModelMultipleChoiceField(
-        queryset=Course.objects.all(),
+        queryset=Course.objects.none(),
         widget=forms.CheckboxSelectMultiple(
             attrs={"class": "browser-default checkbox"}
         ),
         required=True,
     )
     lecturer = forms.ModelChoiceField(
-        queryset=User.objects.filter(is_lecturer=True),
+        queryset=User.objects.none(),
         widget=forms.Select(attrs={"class": "browser-default custom-select"}),
         label="lecturer",
     )
@@ -130,16 +130,22 @@ class EditCourseAllocationForm(forms.ModelForm):
         user = kwargs.pop("user", None)
         super(EditCourseAllocationForm, self).__init__(*args, **kwargs)
 
-        if user and user.organization:
-            self.fields["lecturer"].queryset = User.objects.filter(
-                is_lecturer=True, organization=user.organization
-            )
-            self.fields["courses"].queryset = Course.objects.filter(
-                program__organization=user.organization
-            )
-        else:
-            self.fields["lecturer"].queryset = User.objects.filter(is_lecturer=True)
-            self.fields["courses"].queryset = Course.objects.all()
+        # Filter lecturer field to show only the current lecturer being edited
+        self.fields["lecturer"].queryset = User.objects.filter(
+            pk=self.instance.lecturer.pk
+        )
+
+        # Get the allocated courses for this lecturer
+        allocated_courses = self.instance.courses.all()
+        # Get the courses from the lecturer's organization
+        organization_courses = Course.objects.filter(
+            program__organization=self.instance.lecturer.organization
+        )
+        # Combine both querysets
+        combined_queryset = organization_courses | allocated_courses
+
+        # Assign the combined queryset to the courses field
+        self.fields["courses"].queryset = combined_queryset.distinct()
 
 
 # Upload files to specific course

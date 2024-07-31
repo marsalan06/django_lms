@@ -18,6 +18,7 @@ urlpatterns = [
     path(
         "course/assign/", CourseAllocationFormView.as_view(), name="course_allocation"
     ),
+    path("fetch-courses/", FetchCoursesView.as_view(), name="fetch_courses"),
     path(
         "course/allocated/",
         CourseAllocationFilterView.as_view(),
