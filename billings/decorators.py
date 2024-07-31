@@ -136,146 +136,89 @@ def add_months(date, months):
 def payment_check_required(view_func):
     def wrapper(request, *args, **kwargs):
         user = request.user
-        if user.is_student:
+        if user and user.student:
             # Access the related organization of the user
+            
             organization = user.organization
             
-            if organization: 
-                try:
-                    # Access OrganizationSubscription related to the user's organization
-                    organization_subscription = organization.organizationsubscription
-                    
-                    # Example: Print or use the subscription in some way
-                    print(f"Subscription: {organization_subscription.subscription.name}, Start Date: {organization_subscription.date_of_subscription}")
-                     # Extract date_of_subscription and subscorganization_subscriptionription duration
-                    date_of_subscription = organization_subscription.date_of_subscription
-                    subscription_duration = organization_subscription.subscription.duration
-                    
-                    # Print or use the variables as needed
-                    print(f"Date of Subscription: {date_of_subscription}")
-                    print(f"Subscription Duration: {subscription_duration}")
-                    current_date = timezone.now().date()
-                                    
-                    payment_dates = []
-                    next_payment_date = date_of_subscription
-                    
-                    while next_payment_date <= current_date:
-                        payment_dates.append(next_payment_date)
-                        next_payment_date = add_months(next_payment_date, subscription_duration)
+            if organization:    
+                current_date = timezone.now().date()
 
-                    existing_invoices = StudentInvoice.objects.filter(
+                organization_subscription = OrganizationSubscription.objects.filter(
+                organization=user.organization
+                ).first() 
+                if organization_subscription: 
+                    latest_invoice = StudentInvoice.objects.filter(
                         user=user,
                         organization_subscription=organization_subscription
-                    ).values_list('date', flat=True)
-                    existing_invoice_dates = [invoice_date for invoice_date in existing_invoices]
+                    ).order_by('-billing_period_date').first()
                     
-                    print(payment_dates)
-                    print(existing_invoice_dates)
-                    payment_dates=payment_dates[:-1]
-                    missing_dates=[]
-                    # Find missing payment dates
-                    payment_dates_month_year = [(date.year, date.month) for date in payment_dates]
-                    existing_invoice_dates_month_year = [(date.year, date.month) for date in existing_invoice_dates]
+                    if latest_invoice:
+                        if latest_invoice.next_due_date and latest_invoice.next_due_date < current_date:
+                            # Redirect if the next_due_date is less than the current date
+                            print("user default 1")
+                            return redirect("/billing/billing")  # Replace 'some_view_name' with the name of your view or URL pattern
+                    else:
+                        # No invoice found, calculate the next_due_date based on subscription and its duration
+                        subscription = organization_subscription.subscription
+                        subscription_duration_months = subscription.duration
 
-                    # Find missing payment months
-                    missing_dates = [
-                        (year, month) for year, month in payment_dates_month_year
-                        if (year, month) not in existing_invoice_dates_month_year
-                    ]
+                        # Assuming the subscription start date is when the OrganizationSubscription was created
+                        subscription_start_date = organization_subscription.date_of_subscription
 
-                    # missing_dates = [date for date in existing_invoice_dates if date not in payment_dates]
-                   
+                        # Calculate next_due_date based on the subscription duration
+                        next_due_date = subscription_start_date + timedelta(days=subscription_duration_months * 30)
+                        
+                        if next_due_date < current_date:
+                            print("user default 2")
+                            # Redirect if the calculated next_due_date is less than the current date
+                            return redirect("/billing/billing") 
+                        
+
                     
-                    # Print missing dates
-                    for date in missing_dates:
-                        print(f"Missing invoice for {date}")
-                    if(len(missing_dates)>0):
-                        return redirect("/programs/my_courses/")
-                except OrganizationSubscription.DoesNotExist:
-                    # Handle case where no OrganizationSubscription exists
-                    print("No subscription found for this organization.")
-            else:
-                # Handle case where the user has no associated organization
-                print("User has no associated organization.")
-
-            
-            if organization: 
-                try:
-                    # Access OrganizationSubscription related to the user's organization
-                    organization_subscription = organization.organizationsubscription
-
-                    student_count = User.objects.filter(
-                    organization=organization,
-                    is_student=True
-                    ).count()
-                    print(student_count)
-                    print(f"Subscription: {organization_subscription.subscription.name}, Start Date: {organization_subscription.date_of_subscription}")
-                     # Extract date_of_subscription and subscorganization_subscriptionription duration
-                    date_of_subscription = organization_subscription.date_of_subscription
-                    subscription_duration = organization_subscription.subscription.duration
-                    price = organization_subscription.subscription.price*student_count
+                    latest_invoice = OrganizationInvoice.objects.filter(
+                    organization_subscription=organization_subscription
+                    ).order_by('-billing_period_date').first()
                     
-                    
-                    # Print or use the variables as needed
-                    print(f"Date of Subscription: {date_of_subscription}")
-                    print(f"Subscription Duration: {subscription_duration}")
                     current_date = timezone.now().date()
-                
-                    payment_dates = []
-                    next_payment_date = date_of_subscription
-                    
-                    while next_payment_date <= current_date:
-                        payment_dates.append(next_payment_date)
-                        next_payment_date = add_months(next_payment_date, subscription_duration)
-
-                    existing_invoices = OrganizationInvoice.objects.filter(
-                        organization_subscription=organization_subscription
-                    ).values_list('date', 'amount')
-                    existing_invoice_dates = [invoice_date for invoice_date, _ in existing_invoices]
-                    amount = [amount for _, amount in existing_invoices]
-                    
-                    
-
-                    print(amount)
-                    print("noob\n\n")
-                    # amount=amount[:-1]
-                    
-                    payment_dates=payment_dates[:-1]
-                    missing_dates=[]
-                    # Find missing payment dates
-                    payment_dates_month_year = [(date.year, date.month) for date in payment_dates]
-                    existing_invoice_dates_month_year = [(date.year, date.month) for date in existing_invoice_dates]
-
-                    # Find missing payment months
-                    missing_dates = [
-                        (year, month) for year, month in payment_dates_month_year
-                        if (year, month) not in existing_invoice_dates_month_year
-                    ]
-
-                    # missing_dates = [date for date in existing_invoice_dates if date not in payment_dates]
-                
-                    
-                    # Print missing dates
-                    for date in missing_dates:
-                        print(f"Missing invoice for {date}")
-                    if(len(missing_dates)>0):
-                        return redirect("/billing")
-                    this_month = datetime.now().month
-                    this_year = datetime.now().year
-                    for i in range(len(existing_invoice_dates_month_year)):
-                        year, month = existing_invoice_dates_month_year[i]
+                    if latest_invoice:
+                        if latest_invoice.next_due_date and latest_invoice.next_due_date < current_date:
+                            # Redirect if the next_due_date is less than the current date
+                            print("organization default 1")
+                            return redirect("/billing/billing")   # Replace 'some_view_name' with the name of your view or URL pattern
                         
-                        if year == this_year and month == this_month:
-                            print("wowr")
-                        else:
-                            if amount[i] < Decimal(0.75) * price:
-                                
-                                return redirect("/billing/billing")
-                                print(f"Price less then 75% for the month: {existing_invoice_dates[i]}")
-                        
-                except OrganizationSubscription.DoesNotExist:
-                    # Handle case where no OrganizationSubscription exists
+                        # Check if amount_paid is less than 75% of amount_payable
+                        if latest_invoice.amount_paid and latest_invoice.amount_payable:
+                            if latest_invoice.amount_paid < 0.75 * latest_invoice.amount_payable:
+                                # Handle case where amount_paid is less than 75% of amount_payable
+                                print("Amount paid is less than 75% of the amount payable.")
+                                return redirect("/billing/billing")   # Replace with appropriate view or URL pattern
+
+                    else:
+                        # No invoice found, calculate the next_due_date based on subscription and its duration
+                        subscription = organization_subscription.subscription
+                        subscription_duration_months = subscription.duration
+
+                        # Assuming the subscription start date is when the OrganizationSubscription was created
+                        subscription_start_date = organization_subscription.date_of_subscription
+
+                        # Calculate next_due_date based on the subscription duration
+                        next_due_date = subscription_start_date + timedelta(days=subscription_duration_months * 30)
+
+                        if next_due_date < current_date:
+                            print("organization default 2")
+                            # Redirect if the calculated next_due_date is less than the current date
+                            return redirect("/billing/billing")  # Replace 'some_view_name' with the name of your view or URL pattern
+
+                    
+                else:
+                    # Handle case where the user has no associated organization
                     print("No subscription found for this organization.")
+
+                
+                
+                
+                
         # Continue with the original view function
         return view_func(request, *args, **kwargs)
 
