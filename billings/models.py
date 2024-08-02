@@ -6,6 +6,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 import secrets
 import string
+import calendar
 
 class Subscription(models.Model):
     SUBSCRIPTION_CHOICES = [
@@ -44,9 +45,8 @@ class OrganizationSubscription(models.Model):
         return f"{self.organization.name} - {self.subscription.name} ({self.date_of_subscription})"
 
 def generate_uuid(length=6):
-    """Generate a secure random numeric string."""
-    digits = string.digits
-    return ''.join(secrets.choice(digits) for _ in range(length))
+    """Generate a 6-character string from a UUID."""
+    return str(uuid.uuid4().int)[:length]
 
 class OrganizationInvoice(models.Model):
     organization_subscription = models.ForeignKey(OrganizationSubscription, on_delete=models.CASCADE, null=True)
@@ -56,7 +56,7 @@ class OrganizationInvoice(models.Model):
     payment_complete = models.BooleanField(default=False)
     payment_date = models.DateField(null=True)
     next_due_date = models.DateField(null=True)
-    invoice_code = models.CharField(max_length=200, blank=True, null=True, default=generate_uuid)
+    invoice_code = models.CharField(max_length=6, unique=True, blank=True, null=True, default=generate_uuid)
 
     def save(self, *args, **kwargs):
         if self.organization_subscription:
@@ -72,12 +72,7 @@ class OrganizationInvoice(models.Model):
                 raise ValidationError("Amount paid cannot exceed amount payable")
 
             subscription_duration = self.organization_subscription.subscription.duration
-            previous_invoices = OrganizationInvoice.objects.filter(organization_subscription=self.organization_subscription).count()
-            if previous_invoices == 0:
-                self.next_due_date = self.organization_subscription.date_of_subscription + timedelta(days=subscription_duration * 30)
-            else:
-                self.next_due_date = self.billing_period_date + timedelta(days=subscription_duration * 30)
-        
+            
         super(OrganizationInvoice, self).save(*args, **kwargs)
 
 class StudentInvoice(models.Model):
@@ -89,7 +84,7 @@ class StudentInvoice(models.Model):
     payment_complete = models.BooleanField(default=False)
     payment_date = models.DateField(null=True)
     next_due_date = models.DateField(null=True)
-    invoice_code = models.CharField(max_length=200, blank=True, null=True, default=generate_uuid)
+    invoice_code = models.CharField(max_length=6, unique=True, blank=True, null=True, default=generate_uuid)
 
     def save(self, *args, **kwargs):
         
@@ -105,19 +100,30 @@ class StudentInvoice(models.Model):
             self.amount_payable = float(self.organization_subscription.subscription.price)
             self.amount_paid = float(self.organization_subscription.subscription.price)
 
-            # Ensure amount_paid does not exceed amount_payable
-            # if self.amount_paid and self.amount_paid > self.amount_payable:
-            #     raise ValidationError("Amount paid cannot exceed amount payable")
+            if self.amount_paid and self.amount_paid > self.amount_payable:
+                raise ValidationError("Amount paid cannot exceed amount payable")
 
             subscription_duration = self.organization_subscription.subscription.duration
             previous_invoices = StudentInvoice.objects.filter(user=self.user).count()
+            previous_due_date=''
             if previous_invoices == 0:
-                self.next_due_date = self.organization_subscription.date_of_subscription + timedelta(days=subscription_duration * 30)
+                previous_due_date = self.organization_subscription.date_of_subscription
             else:
                 last_invoice = StudentInvoice.objects.filter(user=self.user).order_by('-billing_period_date').first()
+                previous_due_date = last_invoice.next_due_date
 
-                self.next_due_date = last_invoice.next_due_date + timedelta(days=subscription_duration * 30)
+            if self.billing_period_date < self.organization_subscription.date_of_subscription:
+                raise ValidationError("Billing period date cannot be earlier than the subscription date.")
+            
+            
+            if self.billing_period_date > previous_due_date:
+                print("rrrr\n\n\n")
+                raise ValidationError("Billing period date must be smaller or equal than the next due date of the last invoice.")
+            
+            self.next_due_date = self.calculate_next_due_date(previous_due_date, subscription_duration)
 
+            
+            
             if self.pk:
                 old_instance = StudentInvoice.objects.get(pk=self.pk)
                 old_amount = old_instance.amount_paid
@@ -129,8 +135,12 @@ class StudentInvoice(models.Model):
         self.update_organization_invoice(old_amount)
         
         
-        
-
+    def calculate_next_due_date(self, start_date, months_to_add):
+        next_date = start_date
+        for _ in range(months_to_add):
+            days_in_month = calendar.monthrange(next_date.year, next_date.month)[1]
+            next_date += timedelta(days=days_in_month)
+        return next_date
         
         
 
@@ -151,6 +161,7 @@ class StudentInvoice(models.Model):
             org_invoice.save()
         
         else:
+            print(self.next_due_date,"\n\n\n")
             OrganizationInvoice.objects.create(
                 organization_subscription=self.organization_subscription,
                 amount_payable=self.amount_payable,

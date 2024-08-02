@@ -31,15 +31,12 @@ class OrganizationInvoiceAdmin(admin.ModelAdmin):
 class StudentInvoiceAdmin(admin.ModelAdmin):
     readonly_fields = ('amount_payable', 'next_due_date', 'amount_paid')
     list_display = (
-        'organization_subscription', 
         'user', 
         'amount_payable', 
-        'amount_paid', 
         'formatted_billing_period_date',  # Custom method for formatted date
         'payment_complete', 
         'payment_date', 
         'next_due_date', 
-        'invoice_code'
     )
     search_fields = ('user__username', 'invoice_code')
     list_filter = ('payment_complete',)
