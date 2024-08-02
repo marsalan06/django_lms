@@ -51,6 +51,19 @@ class NewsAndEventsManager(models.Manager):
     def search(self, query):
         return self.get_queryset().search(query)
 
+    def custom_search(self, query=None, organization=None):
+        queryset = self.get_queryset()
+        if query is not None:
+            or_lookup = (
+                Q(title__icontains=query)
+                | Q(summary__icontains=query)
+                | Q(tags__icontains=query)
+            )
+            if organization:
+                or_lookup &= Q(organization__name__icontains=organization)
+            queryset = queryset.filter(or_lookup).distinct()
+        return queryset
+
 
 class NewsAndEvents(models.Model):
     title = models.CharField(max_length=200, null=True)

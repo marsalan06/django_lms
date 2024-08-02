@@ -19,12 +19,18 @@ class SearchView(ListView):
     def get_queryset(self):
         request = self.request
         query = request.GET.get("q", None)
+        user = request.user
 
         if query is not None:
-            news_events_results = NewsAndEvents.objects.search(query)
-            program_results = Program.objects.search(query)
-            course_results = Course.objects.search(query)
-            quiz_results = Quiz.objects.search(query)
+            organization = getattr(user, "organization", None)
+            organization_name = organization.name if organization else None
+
+            news_events_results = NewsAndEvents.objects.custom_search(
+                query, organization_name
+            )
+            program_results = Program.objects.custom_search(query, organization_name)
+            course_results = Course.objects.custom_search(query, organization_name)
+            quiz_results = Quiz.objects.custom_search(query, organization_name)
 
             # combine querysets
             queryset_chain = chain(
@@ -35,4 +41,5 @@ class SearchView(ListView):
             )
             self.count = len(queryset)  # since queryset is actually a list
             return queryset
+
         return NewsAndEvents.objects.none()  # just an empty queryset as default

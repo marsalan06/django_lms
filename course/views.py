@@ -407,7 +407,7 @@ def handle_file_edit(request, slug, file_id):
     course = Course.objects.get(slug=slug)
     instance = Upload.objects.get(pk=file_id)
     if request.method == "POST":
-        form = UploadFormFile(request.POST, request.FILES, instance=instance)
+        form = UploadFormFile(request.POST, request.FILES, instance=instance, slug=slug)
         # file_name = request.POST.get('name')
         if form.is_valid():
             form.save()
@@ -416,7 +416,7 @@ def handle_file_edit(request, slug, file_id):
             )
             return redirect("course_detail", slug=slug)
     else:
-        form = UploadFormFile(instance=instance)
+        form = UploadFormFile(instance=instance, slug=slug)
 
     return render(
         request,
@@ -475,7 +475,9 @@ def handle_video_edit(request, slug, video_slug):
     course = Course.objects.get(slug=slug)
     instance = UploadVideo.objects.get(slug=video_slug)
     if request.method == "POST":
-        form = UploadFormVideo(request.POST, request.FILES, instance=instance)
+        form = UploadFormVideo(
+            request.POST, request.FILES, instance=instance, slug=slug
+        )
         if form.is_valid():
             form.save()
             messages.success(
@@ -483,7 +485,7 @@ def handle_video_edit(request, slug, video_slug):
             )
             return redirect("course_detail", slug=slug)
     else:
-        form = UploadFormVideo(instance=instance)
+        form = UploadFormVideo(instance=instance, slug=slug)
 
     return render(
         request,
