@@ -59,6 +59,15 @@ class ProgramManager(models.Manager):
             ).distinct()  # distinct() is often necessary with Q lookups
         return queryset
 
+    def custom_search(self, query=None, organization=None):
+        queryset = self.get_queryset()
+        if query is not None:
+            or_lookup = Q(title__icontains=query) | Q(summary__icontains=query)
+            if organization:
+                or_lookup &= Q(organization__name__icontains=organization)
+            queryset = queryset.filter(or_lookup).distinct()
+        return queryset
+
 
 class Program(models.Model):
     title = models.CharField(max_length=150)
@@ -112,6 +121,20 @@ class CourseManager(models.Manager):
             queryset = queryset.filter(
                 or_lookup
             ).distinct()  # distinct() is often necessary with Q lookups
+        return queryset
+
+    def custom_search(self, query=None, organization=None):
+        queryset = self.get_queryset()
+        if query is not None:
+            or_lookup = (
+                Q(title__icontains=query)
+                | Q(summary__icontains=query)
+                | Q(code__icontains=query)
+                | Q(slug__icontains=query)
+            )
+            if organization:
+                or_lookup &= Q(program__organization__name__icontains=organization)
+            queryset = queryset.filter(or_lookup).distinct()
         return queryset
 
 

@@ -51,6 +51,22 @@ class QuizManager(models.Manager):
             ).distinct()  # distinct() is often necessary with Q lookups
         return qs
 
+    def custom_search(self, query=None, organization=None):
+        queryset = self.get_queryset()
+        if query is not None:
+            or_lookup = (
+                Q(title__icontains=query)
+                | Q(description__icontains=query)
+                | Q(category__icontains=query)
+                | Q(slug__icontains=query)
+            )
+            if organization:
+                or_lookup &= Q(
+                    course__program__organization__name__icontains=organization
+                )
+            queryset = queryset.filter(or_lookup).distinct()
+        return queryset
+
 
 class Quiz(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True)
