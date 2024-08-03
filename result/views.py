@@ -55,11 +55,6 @@ def add_score(request):
     # under this
     # courses = Course.objects.filter(allocated_course__lecturer__pk=request.user.id)
     print("-----current semmester----", current_semester)
-    print(
-        Course.objects.filter(allocated_course__lecturer__pk=request.user.id)[
-            1
-        ].__dict__
-    )
     courses = Course.objects.filter(
         allocated_course__lecturer__pk=request.user.id
     ).filter(semester__contains=[current_semester])
