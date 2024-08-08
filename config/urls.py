@@ -13,6 +13,7 @@ urlpatterns = [
     ),  # Django JET dashboard URLS
     path("", include("core.urls")),
     path("accounts/", include("accounts.urls")),
+    path("billing/", include("billings.urls")),
     path("programs/", include("course.urls")),
     path("result/", include("result.urls")),
     path("search/", include("search.urls")),
