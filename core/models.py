@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
 from django.urls import reverse
@@ -90,28 +91,85 @@ class Session(models.Model):
     session = models.CharField(max_length=200, unique=True)
     is_current_session = models.BooleanField(default=False, blank=True, null=True)
     next_session_begins = models.DateField(blank=True, null=True)
+    organization = models.ForeignKey(
+        "accounts.Organization",
+        on_delete=models.CASCADE,
+        related_name="organization_session",
+    )
+
+    def save(self, *args, **kwargs):
+        if self.is_current_session:
+            # Mark all other sessions in the same organization as not current
+            Session.objects.filter(organization=self.organization).exclude(
+                pk=self.pk
+            ).update(is_current_session=False)
+
+            # Mark all semesters in other sessions as not current
+            Semester.objects.filter(session__organization=self.organization).exclude(
+                session=self
+            ).update(is_current_semester=False)
+
+        else:
+            # Ensure that no semester is marked as current if the session is not current
+            self.semesters.update(is_current_semester=False)
+
+        # Save the current session as the selected one
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.session
+        return f"{self.session} ({self.organization.name})"
 
 
 class Semester(models.Model):
     semester = models.CharField(max_length=10, choices=SEMESTER, blank=True)
     is_current_semester = models.BooleanField(default=False, blank=True, null=True)
     session = models.ForeignKey(
-        Session, on_delete=models.CASCADE, blank=True, null=True
+        Session,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name="semesters",
     )
     next_semester_begins = models.DateField(null=True, blank=True)
 
-    def save(self, *args, **kwargs):
-        # If this semester is set to current, update all others in the same session
-        if self.is_current_semester:
-            # Update other semesters in the same session to not be current
-            Semester.objects.filter(
-                session=self.session, is_current_semester=True
-            ).update(is_current_semester=False)
+    def clean(self):
+        if self.session:
+            # Ensure no more than 3 semesters exist for the session
+            semester_count = (
+                Semester.objects.filter(session=self.session)
+                .exclude(pk=self.pk)
+                .count()
+            )
+            if semester_count >= 3:
+                raise ValidationError("A session can have a maximum of 3 semesters.")
 
-        # Call the original save method
+            # Ensure each semester choice (First, Second, Third) is unique within the session
+            if (
+                Semester.objects.filter(session=self.session, semester=self.semester)
+                .exclude(pk=self.pk)
+                .exists()
+            ):
+                raise ValidationError(
+                    f"The semester '{self.semester}' is already assigned to this session."
+                )
+
+    def save(self, *args, **kwargs):
+        # Run the clean method to validate before saving
+        self.clean()
+
+        if self.is_current_semester:
+            # Check if the associated session is current
+            if not self.session.is_current_session:
+                raise ValidationError(
+                    "Cannot mark this semester as current because its session is not current."
+                )
+
+            # Ensure all other semesters in the same session are marked as not current
+            Semester.objects.filter(session=self.session).exclude(pk=self.pk).update(
+                is_current_semester=False
+            )
+
+        # Save the current semester as the selected one
         super().save(*args, **kwargs)
 
     def __str__(self):
