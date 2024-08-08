@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.files.storage import FileSystemStorage
+from django.db.models import Q
 from django.http import HttpResponse
 
 from reportlab.platypus import (
@@ -186,26 +187,21 @@ def add_score_for(request, id):
                 grade=obj.grade[semester_index]
             )
 
+            obj.avg_total = obj.calculate_avg_total()
+            obj.final_grade = obj.calculate_final_grade()
+            obj.final_comment = obj.calculate_final_comment()
+
             obj.save()
 
             gpa = obj.calculate_gpa(total_credit_in_semester, semester_index)
             print("-----gpa result-------", gpa)
 
             try:
-                a = Result.objects.get(
+                result = Result.objects.get(
                     student=student.student,
                     session=current_session,
                     level=student.student.level,
                 )
-                a.semesters[semester_index] = current_semester_name
-                a.gpa[semester_index] = gpa
-                # a.cgpa = cgpa
-                a.save()
-                cgpa = obj.calculate_cgpa()
-                print("------cgpa result----", cgpa)
-                a.cgpa = cgpa
-                a.save()
-                print("----final ----", a.__dict__)
             except Result.DoesNotExist:
                 result = Result.objects.create(
                     student=student.student,
@@ -214,13 +210,27 @@ def add_score_for(request, id):
                     session=current_session,
                     level=student.student.level,
                 )
-                result.gpa[semester_index] = gpa
-                result.save()
-                cgpa = obj.calculate_cgpa()
-                print("------cgpa result----", cgpa)
-                result.cgpa = cgpa
-                result.save()
-                print("----final----", result.__dict__)
+
+            result.gpa[semester_index] = gpa
+            result.save()
+
+            cgpa = obj.calculate_cgpa()
+            result.cgpa = cgpa
+
+            # Calculate overall average score, grade, and comment for all taken courses
+            taken_courses = TakenCourse.objects.filter(
+                student=student.student, session=current_session
+            )
+            overall_avg_score = sum([tc.avg_total for tc in taken_courses]) / len(
+                taken_courses
+            )
+            overall_grade = obj.get_grade(overall_avg_score)
+            overall_comment = obj.get_comment(overall_grade)
+
+            result.final_avg_total = overall_avg_score
+            result.final_grade = overall_grade
+            result.final_comment = overall_comment
+            result.save()
 
             # try:
             #     a = Result.objects.get(student=student.student,
@@ -347,8 +357,20 @@ def result_sheet_pdf_view(request, id):
     current_session = Session.objects.get(is_current_session=True)
     result = TakenCourse.objects.filter(course__pk=id)
     course = get_object_or_404(Course, id=id)
-    no_of_pass = TakenCourse.objects.filter(course__pk=id, comment="PASS").count()
-    no_of_fail = TakenCourse.objects.filter(course__pk=id, comment="FAIL").count()
+
+    print(TakenCourse.objects.filter(course__pk=id).values())
+    pass_courses = TakenCourse.objects.filter(
+        Q(comment__0="PASS") & Q(comment__1="PASS") & Q(comment__2="PASS"),
+        course__pk=id,
+    )
+
+    no_of_pass = pass_courses.count()
+    fail_courses = TakenCourse.objects.filter(
+        Q(comment__0="FAIL") & Q(comment__1="FAIL") & Q(comment__2="FAIL"),
+        course__pk=id,
+    )
+
+    no_of_fail = fail_courses.count()
     fname = (
         str(current_semester)
         + "_semester_"
@@ -369,7 +391,7 @@ def result_sheet_pdf_view(request, id):
     )
     styles = getSampleStyleSheet()
     styles.add(
-        ParagraphStyle(name="ParagraphTitle", fontSize=11, fontName="FreeSansBold")
+        ParagraphStyle(name="ParagraphTitle", fontSize=10, fontName="FreeSansBold")
     )
     Story = [Spacer(1, 0.2)]
     style = styles["Normal"]
@@ -398,8 +420,8 @@ def result_sheet_pdf_view(request, id):
     normal = style["Normal"]
     normal.alignment = TA_CENTER
     normal.fontName = "Helvetica"
-    normal.fontSize = 12
-    normal.leading = 15
+    normal.fontSize = 10
+    normal.leading = 11
     title = (
         "<b> "
         + str(current_semester)
@@ -416,7 +438,7 @@ def result_sheet_pdf_view(request, id):
     normal.alignment = TA_CENTER
     normal.fontName = "Helvetica"
     normal.fontSize = 10
-    normal.leading = 15
+    normal.leading = 11
     title = "<b>Course lecturer: " + request.user.get_full_name + "</b>"
     title = Paragraph(title.upper(), normal)
     Story.append(title)
@@ -426,7 +448,7 @@ def result_sheet_pdf_view(request, id):
     normal.alignment = TA_CENTER
     normal.fontName = "Helvetica"
     normal.fontSize = 10
-    normal.leading = 15
+    normal.leading = 11
     level = result.filter(course_id=id).first()
     title = "<b>Level: </b>" + str(level.course.level)
     # title = "<b> Results </b>"
@@ -437,8 +459,22 @@ def result_sheet_pdf_view(request, id):
     elements = []
     count = 0
     header = [("S/N", "ID NO.", "FULL NAME", "TOTAL", "GRADE", "POINT", "COMMENT")]
+    table_width = 6.5 * inch  # Define the total width you want for the table
 
-    table_header = Table(header, [inch], [0.5 * inch])
+    # Adjust the colWidths to ensure they add up to table_width
+    col_widths = [
+        0.5 * inch,
+        1.5 * inch,
+        2.0 * inch,
+        1.0 * inch,
+        0.8 * inch,
+        0.8 * inch,
+        1.0 * inch,
+    ]
+
+    # Ensure the total column widths match the table_width
+
+    table_header = Table(header, colWidths=col_widths)
     table_header.setStyle(
         TableStyle(
             [
@@ -447,7 +483,7 @@ def result_sheet_pdf_view(request, id):
                 ("TEXTCOLOR", (0, 0), (0, 0), colors.cyan),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("BOX", (0, 0), (-1, -1), 1, colors.black),
+                ("BOX", (0, 0), (-1, -1), 1, colors.white),
             ]
         )
     )
@@ -457,14 +493,23 @@ def result_sheet_pdf_view(request, id):
         data = [
             (
                 count + 1,
-                student.student.student.username.upper(),
+                Paragraph(student.student.student.username.upper(), styles["Normal"]),
                 Paragraph(
-                    student.student.student.get_full_name.capitalize(), styles["Normal"]
+                    student.student.student.get_full_name.capitalize(),
+                    styles["Normal"],
                 ),
-                student.total,
-                student.grade,
-                student.point,
-                student.comment,
+                ", ".join(
+                    [str(float(value)) for value in student.total]
+                ),  # Convert to string and join with a separator
+                ", ".join(
+                    student.grade
+                ),  # Assuming grade is a list, join with a separator
+                ", ".join(
+                    [str(float(value)) for value in student.point]
+                ),  # Convert to string and join with a separator
+                ", ".join(
+                    student.comment
+                ),  # Assuming comment is a list, join with a separator
             )
         ]
         color = colors.black
@@ -472,7 +517,7 @@ def result_sheet_pdf_view(request, id):
             color = colors.red
         count += 1
 
-        t_body = Table(data, colWidths=[inch])
+        t_body = Table(data, colWidths=col_widths)
         t_body.setStyle(
             TableStyle(
                 [
@@ -490,19 +535,21 @@ def result_sheet_pdf_view(request, id):
     tbl_data = [
         [
             Paragraph("<b>Date:</b>_____________________________", styles["Normal"]),
+            Spacer(1, 0.2 * inch),  # Add a spacer for better alignment
             Paragraph("<b>No. of PASS:</b> " + str(no_of_pass), style_right),
         ],
         [
             Paragraph(
-                "<b>Siganture / Stamp:</b> _____________________________",
+                "<b>Signature / Stamp:</b> _____________________________",
                 styles["Normal"],
             ),
+            Spacer(1, 0.2 * inch),  # Add a spacer for better alignment
             Paragraph("<b>No. of FAIL: </b>" + str(no_of_fail), style_right),
         ],
     ]
+
     tbl = Table(tbl_data)
     Story.append(tbl)
-
     doc.build(Story)
 
     fs = FileSystemStorage(settings.MEDIA_ROOT + "/result_sheet")
