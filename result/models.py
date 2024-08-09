@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.urls import reverse
 from django.contrib.postgres.fields import ArrayField
@@ -145,6 +146,33 @@ class TakenCourse(models.Model):
         default=list,
         blank=True,
     )
+
+    avg_total = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+    final_grade = models.CharField(max_length=2, choices=GRADE, blank=True)
+    final_comment = models.CharField(max_length=200, choices=COMMENT, blank=True)
+
+    def calculate_avg_total(self):
+        """
+        Calculate the average of total scores across all semesters.
+        """
+        if self.total:
+            total_sum = sum(Decimal(score) for score in self.total)
+            return total_sum / Decimal(len(self.total))
+        return Decimal(0.0)
+
+    def calculate_final_grade(self):
+        """
+        Calculate the final grade based on the average total.
+        """
+        avg_total = self.calculate_avg_total()
+        return self.get_grade(avg_total)
+
+    def calculate_final_comment(self):
+        """
+        Calculate the final comment based on the final grade.
+        """
+        final_grade = self.calculate_final_grade()
+        return self.get_comment(final_grade)
 
     def get_absolute_url(self):
         return reverse("course_detail", kwargs={"slug": self.course.slug})
@@ -298,3 +326,6 @@ class Result(models.Model):
         help_text="List of semesters",
     )
     level = models.CharField(max_length=25, choices=LEVEL, null=True)
+    final_avg_total = models.DecimalField(max_digits=5, decimal_places=2, default=0.0)
+    final_grade = models.CharField(max_length=2, choices=GRADE, blank=True)
+    final_comment = models.CharField(max_length=200, choices=COMMENT, blank=True)

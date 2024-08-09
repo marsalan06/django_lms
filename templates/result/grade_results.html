@@ -35,7 +35,7 @@
         <th>#</th>
         <th>Courses Title</th>
         <th>Course Code</th>
-        <th>Cr.Hr</th>
+        <!-- <th>Cr.Hr</th> -->
         <th>Grade</th>
         <th>Points</th>
         <th>Comment</th>
@@ -49,7 +49,7 @@
         <th>{{ forloop.counter }}</th>
         <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
         <td>{{ course.course.code }}</td>
-        <td>{{ course.course.credit }}</td>
+        <!-- <td>{{ course.course.credit }}</td> -->
         <td class="{% if course.grade.0 == 'F' %}danger{% else %}success{% endif %}">{{ course.grade.0 }}</td>
         <td>{{ course.point.0 }}</td>
 
@@ -100,8 +100,8 @@
         <th>#</th>
         <th>Course Title</th>
         <th>Course Code</th>
-        <th>Cr.Hr</th>
-        <th>GRADE</th>
+        <!-- <th>Cr.Hr</th> -->
+        <th>Grade</th>
         <th>Points</th>
         <th>Comment</th>
       </tr>
@@ -113,7 +113,7 @@
         <th>{{ forloop.counter }}</th>
         <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
         <td>{{ course.course.code }}</td>
-        <td>{{ course.course.credit }}</td>
+        <!-- <td>{{ course.course.credit }}</td> -->
         
         <td class="{% if course.grade.1 == 'F' %}danger{% else %}success{% endif %}">{{ course.grade.1 }}</td>
         <td>{{ course.point.1 }}</td>
@@ -174,8 +174,8 @@
         <th>#</th>
         <th>Course Title</th>
         <th>Course Code</th>
-        <th>Cr.Hr</th>
-        <th>GRADE</th>
+        <!-- <th>Cr.Hr</th> -->
+        <th>Grade</th>
         <th>Points</th>
         <th>Comment</th>
       </tr>
@@ -187,7 +187,7 @@
         <th>{{ forloop.counter }}</th>
         <td><a href="{{ course.course.get_absolute_url }}">{{ course.course.title }}</a></td>
         <td>{{ course.course.code }}</td>
-        <td>{{ course.course.credit }}</td>
+        <!-- <td>{{ course.course.credit }}</td> -->
         
         <td class="{% if course.grade.2 == 'F' %}danger{% else %}success{% endif %}">{{ course.grade.2 }}</td>
         <td>{{ course.point.2 }}</td>
